@@ -21,5 +21,6 @@ Ya está configurado un servidor simple que responde en la ruta principal (`/`).
 
 ## Iniciar el servidor con nodemon:
 
-npx nodemon app.js
-o npm run dev (recomendado)
+```
+npm run dev (recomendado)
+```
