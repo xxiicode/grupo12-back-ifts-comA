@@ -1,6 +1,6 @@
-# grupo13-back-ifts-comA
+# grupo12 -back-ifts-comA
 
-# Proyecto Backend - Grupo 13
+# Proyecto Backend - Grupo 12
 
 Este es el proyecto base para comenzar con nuestro backend usando **Node.js** y **Express**.  
 Ya está configurado un servidor simple que responde en la ruta principal (`/`).
