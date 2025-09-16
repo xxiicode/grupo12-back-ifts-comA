@@ -1,12 +1,23 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 
-const PORT = 3000;
+// Configuración de Pug
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
 
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rutas
+const eventosRoutes = require('./routes/eventos');
+app.use('/eventos', eventosRoutes);
+
+// Página de inicio
 app.get('/', (req, res) => {
-  res.send('Hola Mundo Cruel desde Node.js y Express!');
+  res.render('index');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+module.exports = app;
