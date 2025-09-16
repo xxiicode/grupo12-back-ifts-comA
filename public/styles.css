@@ -1,0 +1,118 @@
+/* --- Estilos generales --- */
+:root {
+  --primary: #4a6cf7;
+  --secondary: #f4f6fb;
+  --text: #333;
+  --danger: #e63946;
+  --radius: 10px;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--secondary);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Encabezado --- */
+header {
+  background: var(--primary);
+  color: #fff;
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 1rem;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* --- Contenido principal --- */
+main {
+  max-width: 1000px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  padding: 2rem;
+}
+
+/* --- Tablas --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+th, td {
+  border: 1px solid #e3e6ef;
+  padding: 0.8rem;
+  text-align: left;
+}
+
+th {
+  background: var(--primary);
+  color: #fff;
+}
+
+tr:nth-child(even) {
+  background: #f9fafe;
+}
+
+/* --- Formularios --- */
+form {
+  margin-top: 2rem;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+input, select, button {
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #3651d4;
+}
+
+/* --- Botón eliminar --- */
+.delete-btn {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #c6282f;
+}
