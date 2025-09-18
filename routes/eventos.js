@@ -61,3 +61,19 @@ router.post('/', async (req, res) => {
 
 
 module.exports = router;
+
+// ---------- EDICIÓN ----------
+
+// Mostrar formulario de edición
+router.get('/editar/:id', async (req, res) => {
+  const evento = await ctrl.getById(req.params.id);
+  if (!evento) return res.status(404).send("Evento no encontrado");
+  res.render('editarEvento', { evento });
+});
+
+// Guardar cambios desde formulario
+router.post('/editar/:id', async (req, res) => {
+  await ctrl.update(req.params.id, req.body);
+  res.redirect('/eventos');
+});
+
