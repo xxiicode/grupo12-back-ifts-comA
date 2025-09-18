@@ -1,0 +1,45 @@
+{
+  "clientes": [
+    {
+      "id": 1,
+      "nombre": "Ana Martínez",
+      "email": "ana.martinez@example.com",
+      "telefono": "123 456"
+    },
+    {
+      "id": 2,
+      "nombre": "Luis Fernández",
+      "email": "luis.fernandez@example.com",
+      "telefono": "987 654"
+    },
+    {
+      "id": 3,
+      "nombre": "Carla Gómez",
+      "email": "carla.gomez@example.com",
+      "telefono": "456 789"
+    }
+  ],
+  "eventos": [
+    {
+      "id": 1,
+      "titulo": "Concierto de Rock",
+      "fecha": "2025-10-12",
+      "ubicacion": "Madrid Arena",
+      "clienteId": 1
+    },
+    {
+      "id": 2,
+      "titulo": "Feria de Tecnología",
+      "fecha": "2025-11-05",
+      "ubicacion": "Barcelona Expo",
+      "clienteId": 2
+    },
+    {
+      "id": 3,
+      "titulo": "Boda Privada",
+      "fecha": "2025-09-30",
+      "ubicacion": "Hotel Ritz, Madrid",
+      "clienteId": 3
+    }
+  ]
+}
