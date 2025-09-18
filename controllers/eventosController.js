@@ -51,6 +51,8 @@ async function update(id, data) {
   const eventos = await readDB();
   const idx = eventos.findIndex(e => String(e.id) === String(id));
   if (idx === -1) return null;
+  
+  // Mantiene el ID original y actualiza los campos enviados
   eventos[idx] = { ...eventos[idx], ...data, id: eventos[idx].id };
   await writeDB(eventos);
   return eventos[idx];

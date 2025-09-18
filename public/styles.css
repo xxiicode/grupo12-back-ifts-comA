@@ -43,8 +43,7 @@ nav a:hover {
 }
 
 /* --- Contenido principal --- */
-main {
-  max-width: 1000px;
+main {  
   margin: 2rem auto;
   background: #fff;
   border-radius: var(--radius);

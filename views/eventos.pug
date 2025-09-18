@@ -18,12 +18,21 @@ block content
         each e in eventos
           tr
             td #{e.id}
-            td #{e.nombre}
-            td #{e.fecha}
-            td #{e.lugar}
-            td $#{e.presupuesto}
-            td #{e.estado}
+            td 
+              input(type="text" value=e.nombre data-id=e.id data-field="nombre" class="edit")
+            td 
+              input(type="date" value=e.fecha data-id=e.id data-field="fecha" class="edit")
+            td 
+              input(type="text" value=e.lugar data-id=e.id data-field="lugar" class="edit")
+            td 
+              input(type="number" value=e.presupuesto data-id=e.id data-field="presupuesto" class="edit")
+            td 
+              select(data-id=e.id data-field="estado" class="edit")
+                option(value="Planificado" selected=e.estado==="Planificado") Planificado
+                option(value="En curso" selected=e.estado==="En curso") En curso
+                option(value="Finalizado" selected=e.estado==="Finalizado") Finalizado
             td
+              button.save-btn(data-id=e.id) 💾
               button.delete-btn(data-id=e.id) 🗑️
   else
     p No hay eventos cargados.
@@ -48,6 +57,22 @@ block content
 
   script.
     document.addEventListener('click', async (ev) => {
+      // Guardar cambios (UPDATE)
+      if (ev.target.matches('.save-btn')) {
+        const id = ev.target.dataset.id;
+        const fields = document.querySelectorAll('[data-id="'+id+'"].edit');
+        const data = {};
+        fields.forEach(f => data[f.dataset.field] = f.value);
+        const res = await fetch('/eventos/api/' + id, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+        if (res.ok) location.reload();
+        else alert('Error al actualizar');
+      }
+
+      // Eliminar (DELETE)
       if (ev.target.matches('.delete-btn')) {
         const id = ev.target.dataset.id;
         if (!confirm('¿Eliminar evento #' + id + '?')) return;
