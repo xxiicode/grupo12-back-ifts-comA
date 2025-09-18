@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
+const clientesCtrl = require('./clientesController');
 
 // Ruta al archivo JSON que usamos como "base de datos"
 const dbPath = path.join(__dirname, '../data/eventos.json');
@@ -66,4 +67,12 @@ async function remove(id) {
   return true;
 }
 
-module.exports = { getAll, getById, create, update, remove };
+// Controlador: devuelve un evento con su cliente incluido
+async function getByIdWithCliente(id) {
+  const evento = await getById(id); // usamos la función que ya tenés
+  if (!evento) return null;
+  const cliente = await clientesCtrl.getById(evento.clienteId);
+  return { ...evento, cliente };
+}
+
+module.exports = { getAll, getById, create, update, remove, getByIdWithCliente };

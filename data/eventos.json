@@ -5,14 +5,16 @@
     "fecha": "2025-12-15",
     "lugar": "Salón Las Estrellas",
     "presupuesto": 1200000,
-    "estado": "Planificado"
+    "estado": "Planificado",
+    "clienteId": 1
   },
   {
     "id": 2,
-    "nombre": "Cumpleaños",
-    "fecha": "2025-10-23",
-    "lugar": "Parque Pereyra",
-    "presupuesto": "2000000",
-    "estado": "Planificado"
+    "nombre": "Cumpleaños 15",
+    "fecha": "2025-09-30",
+    "lugar": "Salon Caballito",
+    "presupuesto": 6000000,
+    "estado": "Planificado",
+    "clienteId": 2
   }
 ]

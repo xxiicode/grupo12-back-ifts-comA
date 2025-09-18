@@ -28,6 +28,13 @@ block content
           option(value="En curso" selected=evento.estado=="En curso") En curso
           option(value="Finalizado" selected=evento.estado=="Finalizado") Finalizado
 
+      .form-group
+        label(for="clienteId") Cliente
+        select#clienteId(name="clienteId" required)
+          option(value="") -- Seleccionar cliente --
+          each c in clientes
+            option(value=c.id selected=(c.id == evento.clienteId)) #{c.nombre}
+
       .form-actions
         button.btn-primary(type="submit") Guardar cambios
         a.btn-secondary(href="/eventos") Cancelar

@@ -13,6 +13,7 @@ block content
           th Lugar
           th Presupuesto
           th Estado
+          th Cliente
           th Acciones
       tbody
         each e in eventos
@@ -23,6 +24,7 @@ block content
             td #{e.lugar}
             td $#{e.presupuesto}
             td #{e.estado}
+            td #{e.cliente ? e.cliente.nombre : 'Sin asignar'} 
             td
               a.editar-btn(href=`/eventos/editar/${e.id}`) ✏️
               button.delete-btn(data-id=e.id) 🗑️
@@ -44,6 +46,12 @@ block content
         option(value="Planificado") Planificado
         option(value="En curso") En curso
         option(value="Finalizado") Finalizado
+    div
+      
+      select(name="clienteId" required)
+        option(value="") Seleccionar cliente
+        each c in clientes
+          option(value=c.id) #{c.nombre}
     div
       button(type="submit") Agregar
 
