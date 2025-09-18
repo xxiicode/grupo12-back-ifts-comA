@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const clientesCtrl = require('./clientesController');
 
-// Ruta al archivo JSON que usamos como "base de datos"
+//Base de datos
 const dbPath = path.join(__dirname, '../data/eventos.json');
 
 // Si el archivo no existe, lo crea vacío
@@ -69,7 +69,7 @@ async function remove(id) {
 
 // Controlador: devuelve un evento con su cliente incluido
 async function getByIdWithCliente(id) {
-  const evento = await getById(id); // usamos la función que ya tenés
+  const evento = await getById(id); 
   if (!evento) return null;
   const cliente = await clientesCtrl.getById(evento.clienteId);
   return { ...evento, cliente };
