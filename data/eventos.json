@@ -5,6 +5,25 @@
     "fecha": "2025-12-15",
     "lugar": "Salón Las Estrellas",
     "presupuesto": 1200000,
-    "estado": "Planificado"
+    "estado": "Finalizado",
+    "clienteId": 1
+  },
+  {
+    "id": 2,
+    "nombre": "Conferencia Tech",
+    "fecha": "2025-11-20",
+    "lugar": "Centro de Convenciones BA",
+    "presupuesto": 800000,
+    "estado": "Planificado",
+    "clienteId": 2
+  },
+  {
+    "id": 3,
+    "nombre": "Cumpleaños 40 Carla",
+    "fecha": "2025-10-05",
+    "lugar": "Quinta Los Olivos",
+    "presupuesto": 300000,
+    "estado": "En progreso",
+    "clienteId": 3
   }
 ]

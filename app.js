@@ -13,7 +13,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Rutas
 const eventosRoutes = require('./routes/eventos');
+const clientesRoutes = require('./routes/clientes');
 app.use('/eventos', eventosRoutes);
+app.use('/clientes', clientesRoutes);
 
 // Página de inicio
 app.get('/', (req, res) => {

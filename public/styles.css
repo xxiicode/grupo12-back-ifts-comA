@@ -116,3 +116,14 @@ button:hover {
 .delete-btn:hover {
   background: #c6282f;
 }
+
+/* Espaciado entre acciones */
+.button {
+  background: transparent;
+  color: var(--primary);
+  border: none;
+  padding: 0;
+  margin-right: 0.6rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

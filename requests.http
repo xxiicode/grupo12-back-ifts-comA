@@ -1,0 +1,79 @@
+### API: Ping básico (clientes)
+GET http://localhost:3000/clientes/api HTTP/1.1
+
+### API Clientes: listar
+GET http://localhost:3000/clientes/api HTTP/1.1
+
+### API Clientes: obtener por id
+GET http://localhost:3000/clientes/api/1 HTTP/1.1
+
+### API Clientes: crear
+POST http://localhost:3000/clientes/api HTTP/1.1
+Content-Type: application/json
+
+{
+  "nombre": "Nuevo Cliente",
+  "email": "nuevo@example.com",
+  "telefono": "555-000"
+}
+
+### API Clientes: actualizar
+PUT http://localhost:3000/clientes/api/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "telefono": "555-111"
+}
+
+### API Clientes: eliminar
+DELETE http://localhost:3000/clientes/api/1 HTTP/1.1
+
+### API Eventos: listar
+GET http://localhost:3000/eventos/api HTTP/1.1
+
+### API Eventos: obtener por id
+GET http://localhost:3000/eventos/api/1 HTTP/1.1
+
+### API Eventos: crear
+POST http://localhost:3000/eventos/api HTTP/1.1
+Content-Type: application/json
+
+{
+  "nombre": "Meetup JS",
+  "fecha": "2025-12-01",
+  "lugar": "Buenos Aires",
+  "presupuesto": 100000,
+  "estado": "Planificado",
+  "clienteId": 1
+}
+
+### API Eventos: actualizar
+PUT http://localhost:3000/eventos/api/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "estado": "Finalizado"
+}
+
+### API Eventos: eliminar
+DELETE http://localhost:3000/eventos/api/1 HTTP/1.1
+
+### API anidadas: eventos de un cliente (listar)
+GET http://localhost:3000/clientes/api/1/eventos HTTP/1.1
+
+### API anidadas: crear evento para cliente
+POST http://localhost:3000/clientes/api/1/eventos HTTP/1.1
+Content-Type: application/json
+
+{
+  "nombre": "Demo Cliente 1",
+  "fecha": "2026-01-10",
+  "lugar": "Auditorio",
+  "presupuesto": 200000,
+  "estado": "Planificado"
+}
+
+### (JSON) Eventos de un cliente - alias
+GET http://localhost:3000/clientes/api/1/eventos HTTP/1.1
+
+

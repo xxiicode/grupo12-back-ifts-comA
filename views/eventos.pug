@@ -1,7 +1,10 @@
 extends layout
 
 block content
-  h2 Lista de Eventos
+  if typeof clienteSeleccionado !== 'undefined' && clienteSeleccionado
+    h2 Eventos de #{clienteSeleccionado.nombre}
+  else
+    h2 Lista de Eventos
 
   if eventos && eventos.length
     table
@@ -12,6 +15,7 @@ block content
           th Fecha
           th Lugar
           th Presupuesto
+          th Cliente
           th Estado
           th Acciones
       tbody
@@ -22,6 +26,7 @@ block content
             td #{e.fecha}
             td #{e.lugar}
             td $#{e.presupuesto}
+            td #{clienteById && clienteById[String(e.clienteId)] ? clienteById[String(e.clienteId)].nombre : '-'}
             td #{e.estado}
             td
               button.delete-btn(data-id=e.id) 🗑️
@@ -38,6 +43,12 @@ block content
       input(type="text" name="lugar" placeholder="Lugar")
     div
       input(type="number" name="presupuesto" placeholder="Presupuesto")
+    div
+      select(name="clienteId")
+        option(value="") Seleccionar cliente
+        if clientes
+          each c in clientes
+            option(value=c.id) #{c.nombre}
     div
       select(name="estado")
         option(value="Planificado") Planificado

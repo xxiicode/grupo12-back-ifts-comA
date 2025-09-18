@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/eventosController');
 const Evento = require('../models/Evento');
+const clientesCtrl = require('../controllers/clientesController');
 
 
 // ---------- RUTAS API (Thunder Client / JSON) ----------
@@ -21,12 +22,16 @@ router.get('/api/:id', async (req, res) => {
 
 // Crear nuevo evento
 router.post('/api', async (req, res) => {
-  const { nombre, fecha, lugar, presupuesto, estado } = req.body;
+  const { nombre, fecha, lugar, presupuesto, estado, clienteId } = req.body;
   if (!nombre || !fecha) {
     return res.status(400).json({ error: 'Nombre y fecha son obligatorios' });
   }
-  const nuevo = await ctrl.create(new Evento(null, nombre, fecha, lugar, presupuesto, estado));
-  res.status(201).json(nuevo);
+  try {
+    const nuevo = await ctrl.create(new Evento(null, nombre, fecha, lugar, presupuesto, estado, clienteId));
+    res.status(201).json(nuevo);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 // Actualizar evento
@@ -48,14 +53,18 @@ router.delete('/api/:id', async (req, res) => {
 
 // Listar todos los eventos
 router.get('/', async (req, res) => {
-  const eventos = await ctrl.getAll();
-  res.render('eventos', { eventos });
+  const [eventos, clientes] = await Promise.all([
+    ctrl.getAll(),
+    clientesCtrl.getAll()
+  ]);
+  const clienteById = Object.fromEntries(clientes.map(c => [String(c.id), c]));
+  res.render('eventos', { eventos, clientes, clienteById });
 });
 
 // Crear nuevo evento desde formulario web
 router.post('/', async (req, res) => {
-  const { nombre, fecha, lugar, presupuesto, estado } = req.body;
-  await ctrl.create(new Evento(null, nombre, fecha, lugar, presupuesto, estado));
+  const { nombre, fecha, lugar, presupuesto, estado, clienteId } = req.body;
+  await ctrl.create(new Evento(null, nombre, fecha, lugar, presupuesto, estado, clienteId));
   res.redirect('/eventos');
 });
 

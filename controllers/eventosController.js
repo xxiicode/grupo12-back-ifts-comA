@@ -41,6 +41,12 @@ async function create(evento) {
   const eventos = await readDB();
   const lastId = eventos.length ? Math.max(...eventos.map(e => Number(e.id))) : 0;
   evento.id = lastId + 1;
+  if (evento.clienteId !== null && evento.clienteId !== undefined) {
+    // validar existencia de cliente
+    const clientesCtrl = require('./clientesController');
+    const cliente = await clientesCtrl.getById(evento.clienteId);
+    if (!cliente) throw new Error('clienteId no existe');
+  }
   eventos.push(evento);
   await writeDB(eventos);
   return evento;
