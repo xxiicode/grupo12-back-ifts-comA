@@ -1,18 +1,18 @@
-const path = require('path');
-const { readDB, writeDB } = require('./dbService');
+import path from 'path';
+import { readDB, writeDB } from './dbService';
 
 const dbPath = path.join(__dirname, '../data/clientes.json');
 
-async function getAll() {
+export async function getAll() {
   return await readDB(dbPath);
 }
 
-async function getById(id) {
+export async function getById(id) {
   const clientes = await readDB(dbPath);
   return clientes.find(c => String(c.id) === String(id)) || null;
 }
 
-async function create(cliente) {
+export async function create(cliente) {
   const clientes = await readDB(dbPath);
   const lastId = clientes.length ? Math.max(...clientes.map(c => Number(c.id))) : 0;
   cliente.id = lastId + 1;
@@ -21,7 +21,7 @@ async function create(cliente) {
   return cliente;
 }
 
-async function update(id, data) {
+export async function update(id, data) {
   const clientes = await readDB(dbPath);
   const idx = clientes.findIndex(c => String(c.id) === String(id));
   if (idx === -1) return null;
@@ -30,7 +30,7 @@ async function update(id, data) {
   return clientes[idx];
 }
 
-async function remove(id) {
+export async function remove(id) {
   const clientes = await readDB(dbPath);
   const idx = clientes.findIndex(c => String(c.id) === String(id));
   if (idx === -1) return false;
@@ -38,5 +38,3 @@ async function remove(id) {
   await writeDB(dbPath, clientes);
   return true;
 }
-
-module.exports = { getAll, getById, create, update, remove };
