@@ -1,0 +1,67 @@
+extends layout
+
+block content
+  h2 Lista de Eventos
+
+  if eventos && eventos.length
+    table
+      thead
+        tr
+          th ID
+          th Nombre
+          th Fecha
+          th Lugar
+          th Presupuesto
+          th Estado
+          th Cliente
+          th Acciones
+      tbody
+        each e in eventos
+          tr
+            td #{e.id}
+            td #{e.nombre}
+            td #{e.fecha}
+            td #{e.lugar}
+            td $#{e.presupuesto}
+            td #{e.estado}
+            td #{e.cliente ? e.cliente.nombre : 'Sin asignar'} 
+            td
+              a.editar-btn(href=`/eventos/editar/${e.id}`) ✏️
+              button.delete-btn(data-id=e.id) 🗑️
+  else
+    p No hay eventos cargados.
+
+  h3 Agregar nuevo evento
+  form(action="/eventos" method="post")
+    div
+      input(type="text" name="nombre" placeholder="Nombre" required)
+    div
+      input(type="date" name="fecha" required)
+    div
+      input(type="text" name="lugar" placeholder="Lugar")
+    div
+      input(type="number" name="presupuesto" placeholder="Presupuesto")
+    div
+      select(name="estado")
+        option(value="Planificado") Planificado
+        option(value="En curso") En curso
+        option(value="Finalizado") Finalizado
+    div
+      
+      select(name="clienteId" required)
+        option(value="") Seleccionar cliente
+        each c in clientes
+          option(value=c.id) #{c.nombre}
+    div
+      button(type="submit") Agregar
+
+  script.
+    document.addEventListener('click', async (ev) => {
+      if (ev.target.matches('.delete-btn')) {
+        const id = ev.target.dataset.id;
+        if (!confirm('¿Eliminar evento #' + id + '?')) return;
+        const res = await fetch('/eventos/api/' + id, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Error al eliminar');
+      }
+    });
