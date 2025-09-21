@@ -1,130 +1,66 @@
-# Express MVC Project
+# grupo12 -back-ifts-comA
 
-Un proyecto Node.js usando Express con arquitectura MVC para trabajo universitario.
+# Proyecto Backend - Grupo 12
 
-## 🚀 Características
+Este es el proyecto base para comenzar con nuestro backend usando **Node.js** y **Express**.  
+Ya está configurado un servidor simple que responde en la ruta principal (`/`).
 
-- **Express 5.1.0** - Framework web moderno y rápido
-- **Pug 3.0.3** - Motor de plantillas limpio y eficiente
-- **Arquitectura MVC** - Separación clara de responsabilidades
-- **Programación Asíncrona** - Mejores prácticas con async/await
-- **Nodemon 3.1.10** - Servidor de desarrollo con recarga automática
+## Funcionalidades actuales
 
-## 📁 Estructura del Proyecto
+- Módulo de Eventos:
+- Listar, crear y eliminar eventos
+- Interfaz web con vistas Pug
+- API REST para pruebas con Thunder Client
+- Próximos módulos:
+- Clientes
+- Proveedores
+- Invitados
+
+## Estructura de carpetas
+
+- **config/** → Archivos de configuración (ej: conexión a la base de datos, variables de entorno).
+- **controllers/** → Funciones que manejan la lógica de cada recurso (ej: eventos).
+- **models/** → Definición de los modelos/tablas de la base de datos (ej: Evento).
+- **routes/** → Definición de las rutas de la aplicación y su conexión con los controladores.
+- **middlewares/** → (Opcional) Validaciones, autenticación, etc.
+- **views/** → (Opcional) Plantillas si el proyecto llega a usar vistas.
+- **public/** → Archivos estáticos (CSS, imágenes, JS)
+- **data/** → Archivos JSON usados como "base de datos"
+
+- **app.js** → Configuración principal de Express (middlewares, rutas, etc.).
+- **server.js** → Archivo de arranque del servidor.
+
+## Cómo ejecutar el proyecto
+
+1. Clonar el repositorio
+   ```bash
+   git clone <URL-del-repo>
+   cd grupo12-back-ifts-comA
+   ```
+
+## Cómo iniciar el servidor
+
+1. Instalar dependencias:
+   ```bash
+   npm install
+   ```
+
+## Iniciar el servidor con nodemon:
 
 ```
-├── app.js                 # Punto de entrada principal
-├── package.json           # Dependencias y scripts
-├── routes/               # Definiciones de rutas
-│   └── index.js
-├── controllers/          # Lógica de controladores
-│   └── homeController.js
-├── models/              # Modelos de datos
-│   └── UserModel.js
-├── views/               # Plantillas Pug
-│   ├── layout.pug
-│   ├── index.pug
-│   └── error.pug
-├── public/              # Archivos estáticos
-│   └── css/
-│       └── style.css
-├── middleware/          # Middleware personalizado
-│   └── index.js
-└── .vscode/            # Configuración de VS Code
-    └── tasks.json
+npm run dev (recomendado)
 ```
 
-## ⚡ Instalación y Uso
+## Abrir en el navegador
 
-### 1. Instalar dependencias
+http://localhost:3000/
 
-```bash
-npm install
-```
+# Cambios Recientes
 
-### 2. Desarrollo
-
-```bash
-npm run dev
-```
-
-El servidor se iniciará en `http://localhost:3000` con recarga automática.
-
-### 3. Producción
-
-```bash
-npm start
-```
-
-## 🛠️ Scripts Disponibles
-
-- `npm start` - Inicia el servidor en modo producción
-- `npm run dev` - Inicia el servidor de desarrollo con nodemon
-- `npm test` - Ejecuta las pruebas (por implementar)
-
-## 🏗️ Arquitectura MVC
-
-### Models (Modelos)
-
-- Contienen la lógica de datos y reglas de negocio
-- Ejemplo: `UserModel.js` - Operaciones CRUD asíncronas
-
-### Views (Vistas)
-
-- Plantillas Pug para la presentación
-- Layout base y vistas específicas
-- Estilos CSS responsivos
-
-### Controllers (Controladores)
-
-- Manejan las solicitudes HTTP
-- Conectan modelos y vistas
-- Implementan lógica asíncrona con async/await
-
-## 🔧 Características Asíncronas
-
-El proyecto implementa buenas prácticas asíncronas:
-
-- **Async/Await** en controladores
-- **Promise-based** models
-- **Error handling** con try/catch
-- **Middleware** para manejo de errores
-
-## 🎯 Desarrollo en VS Code
-
-### Tareas disponibles (Ctrl+Shift+P → "Tasks: Run Task"):
-
-- `Start Development Server` - Inicia con nodemon
-- `Start Production Server` - Inicia en modo producción
-- `Install Dependencies` - Reinstala dependencias
-
-### Debug:
-
-- Usa F5 para debuggear con breakpoints
-- Configuraciones disponibles en `.vscode/launch.json`
-
-## 📚 Próximos Pasos
-
-1. **Base de Datos**: Integrar MongoDB o PostgreSQL
-2. **Autenticación**: Implementar sistema de usuarios
-3. **API REST**: Crear endpoints RESTful
-4. **Testing**: Agregar pruebas unitarias con Jest
-5. **Validación**: Implementar validación de datos
-
-## 🤝 Contribución
-
-Este es un proyecto educativo. Para contribuir:
-
-1. Fork el repositorio
-2. Crea una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-ISC License - Proyecto educativo para la facultad.
-
----
-
-**Desarrollado con ❤️ para aprender Express.js y arquitectura MVC**
+- **Migración a ES Modules**: Se actualizó el proyecto para usar ES Modules (`import/export`) en lugar de CommonJS (`require`)
+- **Refactorización de Rutas**: Se ajustaron las rutas para que la lógica se maneje principalmente en los controllers, siguiendo mejores prácticas de arquitectura MVC
+- **Implementación de Services**: Se crearon services para separar la lógica de negocio de los controllers, mejorando la organización del código
+- **Nuevas Dependencias**:
+  - **dotenv**: Para manejo de variables de entorno
+  - **method-override**: Para soporte de métodos HTTP PUT y DELETE en formularios
+- **Reorganización del Código**: Se ordenaron y estructuraron mejor los archivos y carpetas basándose en lo visto en clase
