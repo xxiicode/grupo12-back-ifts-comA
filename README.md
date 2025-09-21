@@ -5,15 +5,16 @@
 Este es el proyecto base para comenzar con nuestro backend usando **Node.js** y **Express**.  
 Ya está configurado un servidor simple que responde en la ruta principal (`/`).
 
-##  Funcionalidades actuales
--  Módulo de Eventos:
-  - Listar, crear y eliminar eventos
-  - Interfaz web con vistas Pug
-  - API REST para pruebas con Thunder Client
--  Próximos módulos:
-  - Clientes
-  - Proveedores
-  - Invitados
+## Funcionalidades actuales
+
+- Módulo de Eventos:
+- Listar, crear y eliminar eventos
+- Interfaz web con vistas Pug
+- API REST para pruebas con Thunder Client
+- Próximos módulos:
+- Clientes
+- Proveedores
+- Invitados
 
 ## Estructura de carpetas
 
@@ -29,13 +30,13 @@ Ya está configurado un servidor simple que responde en la ruta principal (`/`).
 - **app.js** → Configuración principal de Express (middlewares, rutas, etc.).
 - **server.js** → Archivo de arranque del servidor.
 
-
-##  Cómo ejecutar el proyecto
+## Cómo ejecutar el proyecto
 
 1. Clonar el repositorio
    ```bash
    git clone <URL-del-repo>
    cd grupo12-back-ifts-comA
+   ```
 
 ## Cómo iniciar el servidor
 
@@ -49,6 +50,15 @@ Ya está configurado un servidor simple que responde en la ruta principal (`/`).
 ```
 npm run dev (recomendado)
 ```
+
 ## Abrir en el navegador
 
 http://localhost:3000/
+
+## Actualizaciones recientes
+
+### 22/09/25
+
+- Se creó `dbService.js` para manejar `readDB`, `writeDB`, `ensureDB`, reutilizable por todos los servicios.
+- `eventosService.js` y `clientesService.js` ahora contienen toda la lógica CRUD (`getAll`, `getById`, `create`, `update`, `remove`).
+  Los controladores (`eventosController.js`, `clientesController.js`) se simplificaron, enfocándose solo en manejar las solicitudes HTTP.
