@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as ctrl from '../controllers/clientesController.js';
+import Cliente from '../models/Cliente.js';
+
 const router = express.Router();
-const ctrl = require('../controllers/clientesController');
-const Cliente = require('../models/Cliente');
 
 // ---------- API (JSON) ----------
 
@@ -42,4 +43,4 @@ router.delete('/api/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-module.exports = router;
+export default router;

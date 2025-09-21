@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import * as ctrl from '../controllers/eventosController.js';
+import * as clientesCtrl from '../controllers/clientesController.js';
+import Evento from '../models/Evento.js';
+
 const router = express.Router();
-const ctrl = require('../controllers/eventosController');
-const clientesCtrl = require('../controllers/clientesController');
-const Evento = require('../models/Evento');
 
 // ---------- RUTAS API (Thunder Client / JSON) ----------
 
@@ -98,4 +99,4 @@ router.get('/api/:id/full', async (req, res) => {
   res.json(evento);
 });
 
-module.exports = router;
+export default router;

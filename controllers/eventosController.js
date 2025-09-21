@@ -1,5 +1,5 @@
-const eventosService = require('../services/eventosService');
-const clientesCtrl = require('./clientesController');
+import eventosService from '../services/eventosService.js';
+import * as clientesCtrl from './clientesController.js';
 
 async function getAll() {
   return await eventosService.getAll();
@@ -28,4 +28,4 @@ async function getByIdWithCliente(id) {
   return { ...evento, cliente };
 }
 
-module.exports = { getAll, getById, create, update, remove, getByIdWithCliente };
+export { getAll, getById, create, update, remove, getByIdWithCliente };

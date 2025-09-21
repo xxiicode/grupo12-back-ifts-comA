@@ -1,6 +1,6 @@
 // filepath: c:\wamp64\www\grupo13-back-ifts-comA\controllers\clientesController.js
-const clientesService = require('../services/clientesService');
-const eventosCtrl = require('./eventosController');
+import clientesService from '../services/clientesService.js';
+import * as eventosCtrl from './eventosController.js';
 
 async function getAll() {
   return await clientesService.getAll();
@@ -27,4 +27,4 @@ async function remove(id) {
   return await clientesService.remove(id);
 }
 
-module.exports = { getAll, getById, create, update, remove };
+export { getAll, getById, create, update, remove };

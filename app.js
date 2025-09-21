@@ -1,5 +1,8 @@
-const express = require('express');
-const path = require('path');
+import express from 'express';
+import path from 'path';
+import eventosRoutes from './routes/eventos';
+import clientesRoutes from './routes/clientes';
+
 const app = express();
 
 // Configuración de Pug
@@ -12,8 +15,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rutas
-const eventosRoutes = require('./routes/eventos');
-const clientesRoutes = require('./routes/clientes');
 app.use('/eventos', eventosRoutes);
 app.use('/clientes', clientesRoutes);
 
@@ -22,4 +23,4 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
-module.exports = app;
+export default app;
