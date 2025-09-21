@@ -1,4 +1,4 @@
-import eventosService from '../services/eventosService.js';
+import * as eventosService from '../services/eventosService.js';
 import * as clientesCtrl from './clientesController.js';
 
 async function getAll() {

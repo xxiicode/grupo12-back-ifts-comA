@@ -1,5 +1,5 @@
 // filepath: c:\wamp64\www\grupo13-back-ifts-comA\controllers\clientesController.js
-import clientesService from '../services/clientesService.js';
+import * as clientesService from '../services/clienteService.js';
 import * as eventosCtrl from './eventosController.js';
 
 async function getAll() {

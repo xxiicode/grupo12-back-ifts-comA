@@ -1,6 +1,9 @@
 import path from 'path';
-import { readDB, writeDB } from './dbService';
+import { fileURLToPath } from 'url';
+import { readDB, writeDB } from './dbService.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const dbPath = path.join(__dirname, '../data/eventos.json');
 
 export async function getAll() {

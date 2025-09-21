@@ -1,9 +1,12 @@
 import express from 'express';
 import path from 'path';
-import eventosRoutes from './routes/eventos';
-import clientesRoutes from './routes/clientes';
+import { fileURLToPath } from 'url';
+import eventosRoutes from './routes/eventos.js';
+import clientesRoutes from './routes/clientes.js';
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuración de Pug
 app.set('view engine', 'pug');
