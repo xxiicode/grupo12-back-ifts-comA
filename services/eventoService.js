@@ -1,5 +1,10 @@
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { readDB, writeDB } from './dbService.js';
 import path from 'path';
-import { readDB, writeDB } from './dbService';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const dbPath = path.join(__dirname, '../data/eventos.json');
 
@@ -38,3 +43,11 @@ export async function remove(id) {
   await writeDB(dbPath, eventos);
   return true;
 }
+
+export default {
+  getAll,
+  getById,
+  create,
+  update,
+  remove
+};
