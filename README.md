@@ -1,54 +1,114 @@
-# grupo12 -back-ifts-comA
+Proyecto Backend - Grupo 12 (Comisión A)
+Descripción General
 
-# Proyecto Backend - Grupo 12
+Aplicación web desarrollada con Node.js, Express, Pug y MongoDB (Mongoose).
+Permite gestionar clientes y eventos, realizando operaciones CRUD completas desde una interfaz web y también mediante una API REST JSON.
 
-Este es el proyecto base para comenzar con nuestro backend usando **Node.js** y **Express**.  
-Ya está configurado un servidor simple que responde en la ruta principal (`/`).
+El proyecto fue desarrollado como segunda entrega del curso Desarrollo Web Backend - IFST 29, cumpliendo con todos los criterios solicitados en la consigna del segundo parcial.
 
-##  Funcionalidades actuales
--  Módulo de Eventos:
-  - Listar, crear y eliminar eventos
-  - Interfaz web con vistas Pug
-  - API REST para pruebas con Thunder Client
--  Próximos módulos:
-  - Clientes
-  - Proveedores
-  - Invitados
+Tecnologías utilizadas
 
-## Estructura de carpetas
+Node.js y Express → servidor web y rutas.
 
-- **config/** → Archivos de configuración (ej: conexión a la base de datos, variables de entorno).
-- **controllers/** → Funciones que manejan la lógica de cada recurso (ej: eventos).
-- **models/** → Definición de los modelos/tablas de la base de datos (ej: Evento).
-- **routes/** → Definición de las rutas de la aplicación y su conexión con los controladores.
-- **middlewares/** → (Opcional) Validaciones, autenticación, etc.
-- **views/** → (Opcional) Plantillas si el proyecto llega a usar vistas.
-- **public/** → Archivos estáticos (CSS, imágenes, JS)
-- **data/** → Archivos JSON usados como "base de datos"
+MongoDB + Mongoose → base de datos NoSQL y ODM.
 
-- **app.js** → Configuración principal de Express (middlewares, rutas, etc.).
-- **server.js** → Archivo de arranque del servidor.
+Pug → motor de plantillas para vistas dinámicas.
+
+dotenv → manejo seguro de variables de entorno.
+
+Nodemon → recarga automática en desarrollo.
+
+Instalación y configuración
+1️-Clonar el repositorio
+git clone <https://github.com/xxiicode/grupo12-back-ifts-comA.git>
+cd grupo12-back-ifts-comA
+
+2-Instalar dependencias
+npm install
+
+3-Configurar variables de entorno
+
+Crear el archivo .env en la raíz del proyecto:
+PORT=3000
+MONGO_URI=mongodb://127.0.0.1:27017/grupo12
+
+4-Ejecutar la aplicación
+npm run dev
+
+Luego abrir en el navegador:
+http://localhost:3000
+
+Funcionalidades principales
+Gestión de Clientes
+
+Listado de clientes.
+
+Creación, edición y eliminación.
+
+Formulario en interfaz web.
+
+API REST (/clientes/api).
+
+Gestión de Eventos
+
+Listado de eventos.
+
+Asignación de cliente a cada evento.
+
+Creación, edición y eliminación.
+
+Formulario web y endpoints API (/eventos/api).
+
+Rutas principales
+Tipo	Ruta	Descripción
+GET	/	Página principal
+GET	/clientes	Listar clientes
+POST	/clientes	Crear cliente
+GET	/clientes/editar/:id	Editar cliente
+POST	/clientes/editar/:id	Guardar cambios
+GET	/eventos	Listar eventos
+POST	/eventos	Crear evento
+GET	/eventos/editar/:id	Editar evento
+POST	/eventos/editar/:id	Guardar cambios
+
+API REST (Thunder Client / Postman)
+Clientes
+Método	Endpoint	Descripción
+GET	/clientes/api	Lista todos los clientes
+POST	/clientes/api	Crea un cliente nuevo
+DELETE	/clientes/api/:id	Elimina un cliente
+
+grupo12-back-ifts-comA/
+├── controllers/
+│   ├── clientesController.js
+│   └── eventosController.js
+├── models/
+│   ├── Cliente.js
+│   └── Evento.js
+├── routes/
+│   ├── clientes.js
+│   └── eventos.js
+├── views/
+│   ├── index.pug
+│   ├── clientes.pug
+│   ├── eventos.pug
+│   ├── editarCliente.pug
+│   └── editarEvento.pug
+├── public/
+│   └── styles.css
+├── server.js
+├── .env
+├── package.json
+└── README.md
+
+Integrantes y roles
+Nombre	Rol / Responsabilidad
+Martín Giménez	Integración con MongoDB, controladores, vistas y documentación.
+(Completá el resto de tu grupo)	...
 
 
-##  Cómo ejecutar el proyecto
-
-1. Clonar el repositorio
-   ```bash
-   git clone <URL-del-repo>
-   cd grupo12-back-ifts-comA
-
-## Cómo iniciar el servidor
-
-1. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-
-## Iniciar el servidor con nodemon:
-
-```
-npm run dev (recomendado)
-```
-## Abrir en el navegador
-
-http://localhost:3000/
+Bibliografía y recursos consultados
+Documentación oficial de Express.js
+Documentación de Mongoose
+Documentación de Pug
+Tutoriales y clases prácticas de IFST 29
