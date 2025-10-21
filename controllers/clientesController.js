@@ -1,66 +1,107 @@
-const fs = require('fs').promises;
-const path = require('path');
+const Cliente = require('../models/Cliente');
+const clientesService = require('../services/clientesService');
 
-const dbPath = path.join(__dirname, '../data/clientes.json');
+// ========== CONTROLADORES (MANEJAN REQ/RES) ==========
 
-async function ensureDB() {
+// Listar todos los clientes
+async function getAllClientes(req, res) {
   try {
-    await fs.access(dbPath);
-  } catch {
-    await fs.writeFile(dbPath, '[]', 'utf-8');
+    const clientes = await clientesService.obtenerTodos();
+    res.json(clientes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener clientes', detalle: error.message });
   }
 }
 
-async function readDB() {
-  await ensureDB();
-  const raw = await fs.readFile(dbPath, 'utf-8');
-  return JSON.parse(raw || '[]');
+// Buscar cliente por ID
+async function getClienteById(req, res) {
+  try {
+    const cliente = await clientesService.buscarPorId(req.params.id);
+    
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+    
+    res.json(cliente);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al buscar cliente', detalle: error.message });
+  }
 }
 
-async function writeDB(data) {
-  await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8');
+// Crear nuevo cliente
+async function createCliente(req, res) {
+  try {
+    const { nombre, email, telefono } = req.body;
+    
+    // Validaciones
+    if (!nombre || !email) {
+      return res.status(400).json({ error: 'Nombre y email son obligatorios' });
+    }
+    
+    const nuevoCliente = await clientesService.crear({ nombre, email, telefono });
+    res.status(201).json(nuevoCliente);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al crear cliente', detalle: error.message });
+  }
 }
+
+// Actualizar cliente
+async function updateCliente(req, res) {
+  try {
+    const actualizado = await clientesService.actualizar(req.params.id, req.body);
+    
+    if (!actualizado) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+    
+    res.json(actualizado);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar cliente', detalle: error.message });
+  }
+}
+
+// Eliminar cliente
+async function removeCliente(req, res) {
+  try {
+    // Validar dependencias: no borrar cliente con eventos activos
+    const tieneEventos = await clientesService.tieneEventosActivos(req.params.id);
+    
+    if (tieneEventos) {
+      return res.status(400).json({ 
+        error: 'No se pudo eliminar (cliente tiene eventos activos)' 
+      });
+    }
+    
+    const eliminado = await clientesService.eliminar(req.params.id);
+    
+    if (!eliminado) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+    
+    res.json({ ok: true, mensaje: 'Cliente eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar cliente', detalle: error.message });
+  }
+}
+
+// ========== FUNCIONES AUXILIARES (PARA OTROS CONTROLADORES) ==========
 
 async function getAll() {
-  return await readDB();
+  return await clientesService.obtenerTodos();
 }
 
 async function getById(id) {
-  const clientes = await readDB();
-  return clientes.find(c => String(c.id) === String(id)) || null;
+  return await clientesService.buscarPorId(id);
 }
 
-async function create(cliente) {
-  const clientes = await readDB();
-  const lastId = clientes.length ? Math.max(...clientes.map(c => Number(c.id))) : 0;
-  cliente.id = lastId + 1;
-  clientes.push(cliente);
-  await writeDB(clientes);
-  return cliente;
-}
-
-async function update(id, data) {
-  const clientes = await readDB();
-  const idx = clientes.findIndex(c => String(c.id) === String(id));
-  if (idx === -1) return null;
-  clientes[idx] = { ...clientes[idx], ...data, id: clientes[idx].id };
-  await writeDB(clientes);
-  return clientes[idx];
-}
-
-async function remove(id) {
-  //  Validar dependencias: no borrar cliente con eventos activos
-  const eventosCtrl = require('./eventosController');
-  const eventos = await eventosCtrl.getAll();
-  const usados = eventos.some(e => String(e.clienteId) === String(id));
-  if (usados) return false;
-
-  const clientes = await readDB();
-  const idx = clientes.findIndex(c => String(c.id) === String(id));
-  if (idx === -1) return false;
-  clientes.splice(idx, 1);
-  await writeDB(clientes);
-  return true;
-}
-
-module.exports = { getAll, getById, create, update, remove };
+module.exports = { 
+  // Controladores para las rutas
+  getAllClientes,
+  getClienteById,
+  createCliente,
+  updateCliente,
+  removeCliente,
+  // Funciones auxiliares para otros módulos
+  getAll,
+  getById
+};
