@@ -1,6 +1,6 @@
-const Evento = require('../models/Evento');
-const eventosService = require('../services/eventosService');
-const clientesService = require('../services/clientesService');
+import Evento from '../models/Evento.js';
+import * as eventosService from '../services/eventosService.js';
+import * as clientesService from '../services/clientesService.js';
 
 // ========== CONTROLADORES API (MANEJAN REQ/RES) ==========
 
@@ -173,7 +173,7 @@ async function getByIdWithCliente(id) {
   return await eventosService.obtenerConCliente(id);
 }
 
-module.exports = { 
+export { 
   // Controladores API
   getAllEventos,
   getEventoById,

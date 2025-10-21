@@ -1,5 +1,9 @@
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const dbPath = path.join(__dirname, '../data/eventos.json');
 
@@ -87,8 +91,8 @@ async function obtenerConCliente(id) {
   const evento = await buscarPorId(id);
   if (!evento) return null;
   
-  const clientesService = require('./clientesService');
-  const cliente = await clientesService.buscarPorId(evento.clienteId);
+  const { buscarPorId: buscarClientePorId } = await import('./clientesService.js');
+  const cliente = await buscarClientePorId(evento.clienteId);
   
   return { ...evento, cliente };
 }
@@ -96,8 +100,8 @@ async function obtenerConCliente(id) {
 // Obtener eventos con sus clientes
 async function obtenerTodosConClientes() {
   const eventos = await readDB();
-  const clientesService = require('./clientesService');
-  const clientes = await clientesService.obtenerTodos();
+  const { obtenerTodos: obtenerTodosClientes } = await import('./clientesService.js');
+  const clientes = await obtenerTodosClientes();
   
   return eventos.map(e => {
     const cliente = clientes.find(c => c.id == e.clienteId);
@@ -105,7 +109,7 @@ async function obtenerTodosConClientes() {
   });
 }
 
-module.exports = {
+export {
   obtenerTodos,
   buscarPorId,
   crear,

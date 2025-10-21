@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import * as ctrl from '../controllers/eventosController.js';
+
 const router = express.Router();
-const ctrl = require('../controllers/eventosController');
 
 // ---------- RUTAS API (Thunder Client / JSON) ----------
 
@@ -36,4 +37,4 @@ router.get('/editar/:id', ctrl.mostrarFormularioEdicion);
 // Guardar cambios desde formulario
 router.post('/editar/:id', ctrl.guardarEdicionWeb);
 
-module.exports = router;
+export default router;

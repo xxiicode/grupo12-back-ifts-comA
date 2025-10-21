@@ -1,5 +1,5 @@
-const Cliente = require('../models/Cliente');
-const clientesService = require('../services/clientesService');
+import Cliente from '../models/Cliente.js';
+import * as clientesService from '../services/clientesService.js';
 
 // ========== CONTROLADORES (MANEJAN REQ/RES) ==========
 
@@ -94,7 +94,7 @@ async function getById(id) {
   return await clientesService.buscarPorId(id);
 }
 
-module.exports = { 
+export { 
   // Controladores para las rutas
   getAllClientes,
   getClienteById,

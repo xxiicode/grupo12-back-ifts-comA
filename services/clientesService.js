@@ -1,5 +1,9 @@
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const dbPath = path.join(__dirname, '../data/clientes.json');
 
@@ -84,12 +88,12 @@ async function eliminar(id) {
 
 // Validar si cliente tiene eventos activos
 async function tieneEventosActivos(clienteId) {
-  const eventosService = require('./eventosService');
-  const eventos = await eventosService.obtenerTodos();
+  const { obtenerTodos } = await import('./eventosService.js');
+  const eventos = await obtenerTodos();
   return eventos.some(e => String(e.clienteId) === String(clienteId));
 }
 
-module.exports = {
+export {
   obtenerTodos,
   buscarPorId,
   crear,

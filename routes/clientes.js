@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import * as ctrl from '../controllers/clientesController.js';
+
 const router = express.Router();
-const ctrl = require('../controllers/clientesController');
 
 // ---------- API (JSON) ----------
 
@@ -19,4 +20,4 @@ router.put('/api/:id', ctrl.updateCliente);
 // Eliminar
 router.delete('/api/:id', ctrl.removeCliente);
 
-module.exports = router;
+export default router;
