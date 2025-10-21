@@ -1,4 +1,14 @@
 [
-  { "id": 1, "nombre": "Ana Pérez", "email": "ana@gmail.com", "telefono": "111-222" },
-  { "id": 2, "nombre": "Carlos Díaz", "email": "carlos@gmail.com", "telefono": "333-444" }
+  {
+    "id": 1,
+    "nombre": "Ana Pérez",
+    "email": "ana@gmail.com",
+    "telefono": "111-222"
+  },
+  {
+    "id": 2,
+    "nombre": "Carlos Díaz",
+    "email": "carlos@gmail.com",
+    "telefono": "333-444"
+  }
 ]

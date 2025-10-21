@@ -1,9 +1,9 @@
 import Cliente from '../models/Cliente.js';
 import * as clientesService from '../services/clientesService.js';
 
-// ========== CONTROLADORES (MANEJAN REQ/RES) ==========
+// ========== CONTROLADORES API (MANEJAN REQ/RES) ==========
 
-// Listar todos los clientes
+// Listar todos los clientes (API)
 async function getAllClientes(req, res) {
   try {
     const clientes = await clientesService.obtenerTodos();
@@ -84,6 +84,29 @@ async function removeCliente(req, res) {
   }
 }
 
+// ========== CONTROLADORES WEB (VISTAS PUG) ==========
+
+// Listar todos los clientes (Vista)
+async function listarClientes(req, res) {
+  try {
+    const clientes = await clientesService.obtenerTodos();
+    res.render('clientes', { clientes });
+  } catch (error) {
+    res.status(500).send('Error al cargar clientes');
+  }
+}
+
+// Crear nuevo cliente desde formulario web
+async function crearClienteWeb(req, res) {
+  try {
+    const { nombre, email, telefono } = req.body;
+    await clientesService.crear({ nombre, email, telefono });
+    res.redirect('/clientes');
+  } catch (error) {
+    res.status(500).send('Error al crear cliente');
+  }
+}
+
 // ========== FUNCIONES AUXILIARES (PARA OTROS CONTROLADORES) ==========
 
 async function getAll() {
@@ -95,12 +118,15 @@ async function getById(id) {
 }
 
 export { 
-  // Controladores para las rutas
+  // Controladores API
   getAllClientes,
   getClienteById,
   createCliente,
   updateCliente,
   removeCliente,
+  // Controladores Web
+  listarClientes,
+  crearClienteWeb,
   // Funciones auxiliares para otros módulos
   getAll,
   getById
