@@ -1,11 +1,18 @@
 // controllers/eventosController.js
 import Evento from "../models/Evento.js";
+import Cliente from "../models/Cliente.js";
+
 
 // Mostrar lista de eventos
 export const listarEventos = async (req, res, next) => {
   try {
+    // Traer todos los eventos
     const eventos = await Evento.find();
-    res.render("eventos", { eventos });
+
+    // Traer todos los clientes para el combo del formulario
+    const clientes = await Cliente.find();
+
+    res.render("eventos", { eventos, clientes });
   } catch (error) {
     next(error);
   }
