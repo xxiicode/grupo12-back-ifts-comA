@@ -1,112 +1,74 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const dbPath = path.join(__dirname, '../data/eventos.json');
-
-// ========== FUNCIONES DE BASE DE DATOS ==========
-
-async function ensureDB() {
-  try {
-    await fs.access(dbPath);
-  } catch {
-    await fs.writeFile(dbPath, '[]', 'utf-8');
-  }
-}
-
-async function readDB() {
-  await ensureDB();
-  const raw = await fs.readFile(dbPath, 'utf-8');
-  return JSON.parse(raw || '[]');
-}
-
-async function writeDB(data) {
-  await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8');
-}
+import Evento from "../models/Evento.js";
+import Cliente from "../models/Cliente.js";
 
 // ========== LÓGICA DE NEGOCIO (SERVICES) ==========
 
 // Obtener todos los eventos
 async function obtenerTodos() {
-  return await readDB();
+  try {
+    return await Evento.find().sort({ fecha: 1 });
+  } catch (error) {
+    throw new Error("Error al obtener eventos: " + error.message);
+  }
 }
 
 // Buscar evento por ID
 async function buscarPorId(id) {
-  const eventos = await readDB();
-  return eventos.find(e => String(e.id) === String(id)) || null;
+  try {
+    return await Evento.findById(id);
+  } catch (error) {
+    throw new Error("Error al buscar evento: " + error.message);
+  }
 }
 
 // Crear nuevo evento
 async function crear(datosEvento) {
-  const eventos = await readDB();
-  const lastId = eventos.length ? Math.max(...eventos.map(e => Number(e.id))) : 0;
-  
-  const nuevoEvento = {
-    id: lastId + 1,
-    ...datosEvento
-  };
-  
-  eventos.push(nuevoEvento);
-  await writeDB(eventos);
-  
-  return nuevoEvento;
+  try {
+    const nuevoEvento = new Evento(datosEvento);
+    await nuevoEvento.save();
+    return nuevoEvento;
+  } catch (error) {
+    throw new Error("Error al crear evento: " + error.message);
+  }
 }
 
 // Actualizar evento
 async function actualizar(id, datosEvento) {
-  const eventos = await readDB();
-  const idx = eventos.findIndex(e => String(e.id) === String(id));
-  
-  if (idx === -1) {
-    return null;
+  try {
+    const actualizado = await Evento.findByIdAndUpdate(id, datosEvento, { new: true });
+    return actualizado;
+  } catch (error) {
+    throw new Error("Error al actualizar evento: " + error.message);
   }
-  
-  eventos[idx] = { ...eventos[idx], ...datosEvento, id: eventos[idx].id };
-  await writeDB(eventos);
-  
-  return eventos[idx];
 }
 
 // Eliminar evento
 async function eliminar(id) {
-  const eventos = await readDB();
-  const idx = eventos.findIndex(e => String(e.id) === String(id));
-  
-  if (idx === -1) {
-    return false;
+  try {
+    const eliminado = await Evento.findByIdAndDelete(id);
+    return !!eliminado;
+  } catch (error) {
+    throw new Error("Error al eliminar evento: " + error.message);
   }
-  
-  eventos.splice(idx, 1);
-  await writeDB(eventos);
-  
-  return true;
 }
 
 // Obtener evento con cliente incluido
 async function obtenerConCliente(id) {
-  const evento = await buscarPorId(id);
-  if (!evento) return null;
-  
-  const { buscarPorId: buscarClientePorId } = await import('./clientesService.js');
-  const cliente = await buscarClientePorId(evento.clienteId);
-  
-  return { ...evento, cliente };
+  try {
+    const evento = await Evento.findById(id).populate("clienteId", "nombre email telefono");
+    return evento;
+  } catch (error) {
+    throw new Error("Error al obtener evento con cliente: " + error.message);
+  }
 }
 
-// Obtener eventos con sus clientes
+// Obtener todos los eventos con sus clientes
 async function obtenerTodosConClientes() {
-  const eventos = await readDB();
-  const { obtenerTodos: obtenerTodosClientes } = await import('./clientesService.js');
-  const clientes = await obtenerTodosClientes();
-  
-  return eventos.map(e => {
-    const cliente = clientes.find(c => c.id == e.clienteId);
-    return { ...e, cliente };
-  });
+  try {
+    return await Evento.find().populate("clienteId", "nombre email telefono").sort({ fecha: 1 });
+  } catch (error) {
+    throw new Error("Error al obtener eventos con clientes: " + error.message);
+  }
 }
 
 export {

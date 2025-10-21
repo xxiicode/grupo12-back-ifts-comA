@@ -28,4 +28,12 @@ router.get('/', ctrl.listarClientes);
 // Crear nuevo cliente desde formulario web
 router.post('/', ctrl.crearClienteWeb);
 
+// ---------- RUTAS (MongoDB) ----------
+
+// Mostrar formulario de edición
+router.get('/editar/:id', ctrl.mostrarFormularioEdicion);
+
+// Guardar cambios desde formulario
+router.post('/editar/:id', ctrl.guardarEdicionWeb);
+
 export default router;

@@ -1,10 +1,9 @@
-class Cliente {
-  constructor(id, nombre, email, telefono) {
-    this.id = id;
-    this.nombre = nombre;
-    this.email = email;
-    this.telefono = telefono;
-  }
-}
+import mongoose from "mongoose";
 
-export default Cliente;
+const clienteSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  telefono: String
+});
+
+export default mongoose.model("Cliente", clienteSchema);

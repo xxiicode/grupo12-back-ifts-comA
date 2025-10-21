@@ -20,6 +20,7 @@ block content
             td #{c.email}
             td #{c.telefono || 'N/A'}
             td
+              a.editar-btn(href=`/clientes/editar/${c._id}`) ✏️
               button.delete-btn(data-id=c.id) 🗑️
   else
     p No hay clientes cargados.
