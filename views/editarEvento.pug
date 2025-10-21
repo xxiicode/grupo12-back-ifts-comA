@@ -4,14 +4,17 @@ block content
   .form-container
     h2 Editar evento
 
-    form.form(action=`/eventos/editar/${evento.id}` method="post")
+    //- Mongoose usa _id
+    form.form(action=`/eventos/editar/${evento._id}` method="post")
       .form-group
         label(for="nombre") Nombre
         input#nombre(type="text" name="nombre" value=evento.nombre required)
 
       .form-group
         label(for="fecha") Fecha
-        input#fecha(type="date" name="fecha" value=evento.fecha required)
+        //- Formateamos la fecha para el input tipo date
+        - const fechaISO = new Date(evento.fecha).toISOString().substring(0,10)
+        input#fecha(type="date" name="fecha" value=fechaISO required)
 
       .form-group
         label(for="lugar") Lugar
@@ -33,7 +36,10 @@ block content
         select#clienteId(name="clienteId" required)
           option(value="") -- Seleccionar cliente --
           each c in clientes
-            option(value=c.id selected=(c.id == evento.clienteId)) #{c.nombre}
+            option(
+              value=c._id 
+              selected=(evento.cliente && evento.cliente._id == c._id)
+            ) #{c.nombre}
 
       .form-actions
         button.btn-primary(type="submit") Guardar cambios

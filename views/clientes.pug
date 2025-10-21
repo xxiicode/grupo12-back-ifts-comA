@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  h2 Lista de Clientes
+
+  if clientes && clientes.length
+    table
+      thead
+        tr
+          th ID
+          th Nombre
+          th Email
+          th Teléfono
+          th Acciones
+      tbody
+        each c in clientes
+          tr
+            td #{c._id}
+            td #{c.nombre}
+            td #{c.email}
+            td #{c.telefono || '-'}
+            td
+              a.editar-btn(href=`/clientes/editar/${c._id}`) ✏️
+              button.delete-btn(data-id=c._id) 🗑️
+  else
+    p No hay clientes cargados.
+
+  h3 Agregar nuevo cliente
+  form(action="/clientes" method="post")
+    div
+      input(type="text" name="nombre" placeholder="Nombre" required)
+    div
+      input(type="email" name="email" placeholder="Correo electrónico" required)
+    div
+      input(type="text" name="telefono" placeholder="Teléfono")
+    div
+      button(type="submit") Agregar
+
+  script.
+    document.addEventListener('click', async (ev) => {
+      if (ev.target.matches('.delete-btn')) {
+        const id = ev.target.dataset.id;
+        if (!confirm('¿Eliminar cliente #' + id + '?')) return;
+        const res = await fetch('/clientes/api/' + id, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Error al eliminar');
+      }
+    });

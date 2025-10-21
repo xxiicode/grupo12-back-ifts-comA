@@ -1,66 +1,55 @@
-const fs = require('fs').promises;
-const path = require('path');
+// controllers/clientesController.js
+import Cliente from "../models/Cliente.js";
 
-const dbPath = path.join(__dirname, '../data/clientes.json');
-
-async function ensureDB() {
+// Mostrar lista de clientes
+export const listarClientes = async (req, res, next) => {
   try {
-    await fs.access(dbPath);
-  } catch {
-    await fs.writeFile(dbPath, '[]', 'utf-8');
+    const clientes = await Cliente.find();
+    res.render("clientes", { clientes });
+  } catch (error) {
+    next(error);
   }
-}
+};
 
-async function readDB() {
-  await ensureDB();
-  const raw = await fs.readFile(dbPath, 'utf-8');
-  return JSON.parse(raw || '[]');
-}
+// Crear un nuevo cliente
+export const crearCliente = async (req, res, next) => {
+  try {
+    const { nombre, email, telefono } = req.body;
+    await Cliente.create({ nombre, email, telefono });
+    res.redirect("/clientes");
+  } catch (error) {
+    next(error);
+  }
+};
 
-async function writeDB(data) {
-  await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8');
-}
+// Mostrar formulario de edición
+export const editarClienteForm = async (req, res, next) => {
+  try {
+    const cliente = await Cliente.findById(req.params.id);
+    if (!cliente) return res.status(404).send("Cliente no encontrado");
+    res.render("editarCliente", { cliente });
+  } catch (error) {
+    next(error);
+  }
+};
 
-async function getAll() {
-  return await readDB();
-}
+// Actualizar cliente existente
+export const actualizarCliente = async (req, res, next) => {
+  try {
+    const { nombre, email, telefono } = req.body;
+    await Cliente.findByIdAndUpdate(req.params.id, { nombre, email, telefono });
+    res.redirect("/clientes");
+  } catch (error) {
+    next(error);
+  }
+};
 
-async function getById(id) {
-  const clientes = await readDB();
-  return clientes.find(c => String(c.id) === String(id)) || null;
-}
-
-async function create(cliente) {
-  const clientes = await readDB();
-  const lastId = clientes.length ? Math.max(...clientes.map(c => Number(c.id))) : 0;
-  cliente.id = lastId + 1;
-  clientes.push(cliente);
-  await writeDB(clientes);
-  return cliente;
-}
-
-async function update(id, data) {
-  const clientes = await readDB();
-  const idx = clientes.findIndex(c => String(c.id) === String(id));
-  if (idx === -1) return null;
-  clientes[idx] = { ...clientes[idx], ...data, id: clientes[idx].id };
-  await writeDB(clientes);
-  return clientes[idx];
-}
-
-async function remove(id) {
-  //  Validar dependencias: no borrar cliente con eventos activos
-  const eventosCtrl = require('./eventosController');
-  const eventos = await eventosCtrl.getAll();
-  const usados = eventos.some(e => String(e.clienteId) === String(id));
-  if (usados) return false;
-
-  const clientes = await readDB();
-  const idx = clientes.findIndex(c => String(c.id) === String(id));
-  if (idx === -1) return false;
-  clientes.splice(idx, 1);
-  await writeDB(clientes);
-  return true;
-}
-
-module.exports = { getAll, getById, create, update, remove };
+// Eliminar cliente
+export const eliminarCliente = async (req, res, next) => {
+  try {
+    await Cliente.findByIdAndDelete(req.params.id);
+    res.redirect("/clientes");
+  } catch (error) {
+    next(error);
+  }
+};

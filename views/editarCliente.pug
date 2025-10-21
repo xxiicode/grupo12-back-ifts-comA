@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  .form-container
+    h2 Editar cliente
+
+    form.form(action=`/clientes/editar/${cliente._id}` method="post")
+      .form-group
+        label(for="nombre") Nombre
+        input#nombre(type="text" name="nombre" value=cliente.nombre required)
+
+      .form-group
+        label(for="email") Email
+        input#email(type="email" name="email" value=cliente.email required)
+
+      .form-group
+        label(for="telefono") Teléfono
+        input#telefono(type="text" name="telefono" value=cliente.telefono)
+
+      .form-actions
+        button.btn-primary(type="submit") Guardar cambios
+        a.btn-secondary(href="/clientes") Cancelar

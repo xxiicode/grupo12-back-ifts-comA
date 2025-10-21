@@ -18,16 +18,19 @@ block content
       tbody
         each e in eventos
           tr
-            td #{e.id}
+            //- Mongoose usa _id en lugar de id
+            td #{e._id}
             td #{e.nombre}
-            td #{e.fecha}
+            //- Formateo de fecha
+            td #{new Date(e.fecha).toLocaleDateString('es-AR')}
             td #{e.lugar}
-            td $#{e.presupuesto}
-            td #{e.estado}
+            td $#{e.presupuesto || '-'}
+            td #{e.estado || '-'}
+            //- Cliente puede venir como objeto o solo ID
             td #{e.cliente ? e.cliente.nombre : 'Sin asignar'} 
             td
-              a.editar-btn(href=`/eventos/editar/${e.id}`) ✏️
-              button.delete-btn(data-id=e.id) 🗑️
+              a.editar-btn(href=`/eventos/editar/${e._id}`) ✏️
+              button.delete-btn(data-id=e._id) 🗑️
   else
     p No hay eventos cargados.
 
@@ -47,11 +50,10 @@ block content
         option(value="En curso") En curso
         option(value="Finalizado") Finalizado
     div
-      
-      select(name="clienteId" required)
+      select(name="clienteId")
         option(value="") Seleccionar cliente
         each c in clientes
-          option(value=c.id) #{c.nombre}
+          option(value=c._id)= c.nombre
     div
       button(type="submit") Agregar
 
