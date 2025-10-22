@@ -15,13 +15,13 @@ block content
       tbody
         each c in clientes
           tr
-            td #{c.id}
+            td #{c._id}  
             td #{c.nombre}
             td #{c.email}
             td #{c.telefono || 'N/A'}
             td
               a.editar-btn(href=`/clientes/editar/${c._id}`) ✏️
-              button.delete-btn(data-id=c.id) 🗑️
+              button.delete-btn(data-id=c._id data-nombre=c.nombre) 🗑️  
   else
     p No hay clientes cargados.
 
@@ -40,7 +40,8 @@ block content
     document.addEventListener('click', async (ev) => {
       if (ev.target.matches('.delete-btn')) {
         const id = ev.target.dataset.id;
-        if (!confirm('¿Eliminar cliente #' + id + '?')) return;
+        const nombre = ev.target.dataset.nombre;  
+        if (!confirm('¿Eliminar cliente: ' + nombre + '?')) return;  
         const res = await fetch('/clientes/api/' + id, { method: 'DELETE' });
         if (res.ok) {
           location.reload();
