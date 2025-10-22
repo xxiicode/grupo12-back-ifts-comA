@@ -107,6 +107,31 @@ async function crearClienteWeb(req, res) {
   }
 }
 
+// Mostrar formulario de edición de cliente
+async function mostrarFormularioEdicion(req, res) {
+  try {
+    const cliente = await clientesService.buscarPorId(req.params.id);
+    if (!cliente) {
+      return res.status(404).send("Cliente no encontrado");
+    }
+    res.render("editarCliente", { cliente });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al cargar formulario de edición");
+  }
+}
+
+// Guardar cambios desde formulario de edición
+async function guardarEdicionWeb(req, res) {
+  try {
+    await clientesService.actualizar(req.params.id, req.body);
+    res.redirect("/clientes");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al guardar cambios");
+  }
+}
+
 // ========== FUNCIONES AUXILIARES (PARA OTROS CONTROLADORES) ==========
 
 async function getAll() {
@@ -127,6 +152,8 @@ export {
   // Controladores Web
   listarClientes,
   crearClienteWeb,
+  mostrarFormularioEdicion,
+  guardarEdicionWeb, 
   // Funciones auxiliares para otros módulos
   getAll,
   getById
