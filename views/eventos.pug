@@ -7,7 +7,6 @@ block content
     table
       thead
         tr
-          th ID
           th Nombre
           th Fecha
           th Lugar
@@ -18,7 +17,6 @@ block content
       tbody
         each e in eventos
           tr
-            td #{e.id}
             td #{e.nombre}
             td #{e.fechaFormateada}
             td #{e.lugar}
@@ -27,7 +25,7 @@ block content
             td #{e.clienteId ? e.clienteId.nombre : 'Sin asignar'}
             td
               a.editar-btn(href=`/eventos/editar/${e.id}`) ✏️
-              button.delete-btn(data-id=e.id data-nombre=e.nombre) 🗑️  
+              button.delete-btn(data-id=e.id data-nombre=e.nombre) 🗑️
   else
     p No hay eventos cargados.
 
@@ -58,8 +56,8 @@ block content
     document.addEventListener('click', async (ev) => {
       if (ev.target.matches('.delete-btn')) {
         const id = ev.target.dataset.id;
-        const nombre = ev.target.dataset.nombre;  
-        if (!confirm('¿Eliminar evento: ' + nombre + '?')) return;  
+        const nombre = ev.target.dataset.nombre;
+        if (!confirm('¿Eliminar evento: ' + nombre + '?')) return;
         const res = await fetch('/eventos/api/' + id, { method: 'DELETE' });
         if (res.ok) location.reload();
         else alert('Error al eliminar');
