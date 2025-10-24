@@ -2,8 +2,8 @@
 
 # Proyecto Backend - Grupo 12
 
-Este es el proyecto backend para la gestión de eventos usando **Node.js** y **Express** con arquitectura **MVC + Services**.  
-El sistema permite administrar eventos, clientes, proveedores e invitados con una API REST y vistas web.
+Este es el proyecto backend para la gestión de eventos usando **Node.js** y **Express** con arquitectura **MVC**.  
+El sistema permite administrar eventos, clientes, y en un futuro, proveedores e invitados con una API REST y vistas web.
 
 ---
 
@@ -14,14 +14,12 @@ El sistema permite administrar eventos, clientes, proveedores e invitados con un
 - Listar, crear, editar y eliminar eventos
 - Ver eventos con información del cliente asociado
 - Interfaz web con vistas Pug
-- API REST completa para integración con otras aplicaciones
 - Validaciones de datos obligatorios
 
 ### ✅ Módulo de Clientes
 
 - CRUD completo de clientes (Crear, Leer, Actualizar, Eliminar)
 - Validación de dependencias (no se puede eliminar un cliente con eventos activos)
-- API REST disponible
 - Validaciones de email y campos requeridos
 
 ### 🔜 Próximos Módulos
@@ -44,7 +42,7 @@ grupo12-back-ifts-comA/
 ├── package.json             # Dependencias y scripts del proyecto
 │
 ├── config/                  # Configuraciones globales
-│   └── (futuro: db.js, constants.js)
+│   └── db.js               # Conexión a MongoDB Atlas
 │
 ├── routes/                  # Definición de rutas (endpoints)
 │   ├── clientes.js         # Rutas API para clientes
@@ -58,36 +56,36 @@ grupo12-back-ifts-comA/
 │   ├── clientesService.js
 │   └── eventosService.js
 │
-├── models/                 # Modelos de datos (clases/estructuras)
-│   ├── Cliente.js
-│   └── Evento.js
+├── models/                 # Modelos de datos (Mongoose Schemas)
+│   ├── Cliente.js         # Schema de Cliente para MongoDB
+│   └── Evento.js          # Schema de Evento para MongoDB
 │
 ├── views/                  # Plantillas Pug (interfaz web)
 │   ├── layout.pug         # Plantilla base
 │   ├── index.pug          # Página principal
+│   ├── clientes.pug       # Lista de clientes
+│   ├── editarCliente.pug  # Formulario edición de cliente
 │   ├── eventos.pug        # Lista de eventos
-│   └── editarEvento.pug   # Formulario de edición
+│   └── editarEvento.pug   # Formulario de edición de evento
 │
 ├── public/                 # Archivos estáticos
 │   └── styles.css         # Estilos CSS
-│
-├── data/                   # "Base de datos" (archivos JSON)
-│   ├── clientes.json
-│   └── eventos.json
-│
-└── utils/                  # Utilidades y helpers (futuro)
 ```
 
 ---
 
 ## 🛠️ Tecnologías Utilizadas
 
-- **Node.js** - Entorno de ejecución
-- **Express 5.1.0** - Framework web
-- **Pug 3.0.3** - Motor de plantillas
-- **dotenv 17.2.3** - Variables de entorno
-- **method-override 3.0.0** - Soporte para PUT/DELETE en formularios
+- **Node.js** - Entorno de ejecución JavaScript
+- **Express 5.1.0** - Framework web minimalista y rápido
+- **MongoDB Atlas** - Base de datos NoSQL en la nube
+- **Mongoose 8.19.2** - ODM para MongoDB (Object Data Modeling)
+- **Pug 3.0.3** - Motor de plantillas para vistas HTML
+- **dotenv 17.2.3** - Gestión de variables de entorno
+- **method-override 3.0.0** - Soporte para PUT/DELETE en formularios HTML
+- **morgan 1.10.1** - Logger de peticiones HTTP
 - **Nodemon 3.1.10** - Recarga automática en desarrollo
+- **ES Modules** - Sintaxis moderna de JavaScript
 
 ---
 
@@ -96,7 +94,7 @@ grupo12-back-ifts-comA/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL-del-repo>
+git clone https://github.com/xxiicode/grupo12-back-ifts-comA
 cd grupo12-back-ifts-comA
 ```
 
@@ -108,27 +106,29 @@ npm install
 
 ### 3. Configurar variables de entorno
 
-El archivo `.env` ya está configurado con:
+Crear o editar el archivo `.env` en la raíz del proyecto:
+
+-Todavia viendo como pasarnos de manera segura la cadena de conexion de mongo atlas-
 
 ```env
-NODE_ENV=development
 PORT=3000
-HOST=localhost
-DATA_PATH=./data
+MONGO_URI=mongodb+srv://tu-usuario:tu-password@cluster0.xxxxx.mongodb.net/tu-base-de-datos
 ```
+
+#### ¿Cómo obtener tu MONGO_URI?
+
+1. Ir a [MongoDB Atlas](https://cloud.mongodb.com/)
+2. Crear una cuenta gratuita
+3. Crear un cluster (tier gratuito disponible)
+4. Click en "Connect" → "Connect your application"
+5. Copiar la cadena de conexión
 
 ### 4. Iniciar el servidor
 
-**Modo desarrollo (recomendado):**
+**Modo desarrollo:**
 
 ```bash
 npm run dev
-```
-
-**Modo producción:**
-
-```bash
-npm start
 ```
 
 ### 5. Abrir en el navegador
@@ -164,11 +164,13 @@ http://localhost:3000/
 
 ### Vistas Web
 
-| Ruta                  | Descripción              |
-| --------------------- | ------------------------ |
-| `/`                   | Página principal         |
-| `/eventos`            | Lista de eventos (tabla) |
-| `/eventos/editar/:id` | Formulario de edición    |
+| Ruta                   | Descripción                     |
+| ---------------------- | ------------------------------- |
+| `/`                    | Página principal                |
+| `/clientes`            | Lista de clientes (tabla)       |
+| `/clientes/editar/:id` | Formulario edición de cliente   |
+| `/eventos`             | Lista de eventos (tabla)        |
+| `/eventos/editar/:id`  | Formulario de edición de evento |
 
 ---
 
@@ -176,15 +178,22 @@ http://localhost:3000/
 
 ### Mejoras Implementadas
 
-- **Migración a ES Modules**: Se actualizó el proyecto para usar ES Modules (`import/export`) en lugar de CommonJS (`require`)
-- **Refactorización de Rutas**: Se ajustaron las rutas para que la lógica se maneje principalmente en los controllers, siguiendo mejores prácticas de arquitectura MVC
-- **Implementación de Services**: Se crearon services para separar la lógica de negocio de los controllers, mejorando la organización del código
+- **Migración a MongoDB Atlas**: Se migró de archivos JSON a MongoDB Atlas
+- **Migración a ES Modules**: Proyecto actualizado para usar sintaxis moderna (`import/export`) en lugar de CommonJS (`require`)
+- **Arquitectura MVC + Services**: Separación completa de responsabilidades
+  - **Routes**: Solo definen endpoints
+  - **Controllers**: Manejan peticiones HTTP y respuestas
+  - **Services**: Contienen lógica de negocio y operan con MongoDB
+  - **Models**: Schemas de Mongoose con validaciones
+- **Vistas completas**: Interfaces web para Clientes y Eventos con Pug
+- **Validación de dependencias**: No se puede eliminar un cliente si tiene eventos asociados
 - **Nuevas Dependencias**:
-  - **dotenv**: Para manejo de variables de entorno
-  - **method-override**: Para soporte de métodos HTTP PUT y DELETE en formularios
-- **Reorganización del Código**: Se ordenaron y estructuraron mejor los archivos y carpetas basándose en lo visto en clase
+  - **mongoose**: ODM para MongoDB
+  - **morgan**: Logger de peticiones HTTP
+  - **dotenv**: Gestión de variables de entorno
+  - **method-override**: Soporte PUT/DELETE en formularios HTML
 
-Estos cambios mejoran la mantenibilidad, escalabilidad y siguen las mejores prácticas de desarrollo con Node.js y Express.
+Estos cambios mejoran significativamente la mantenibilidad, escalabilidad y profesionalismo del proyecto.
 
 ---
 
@@ -202,9 +211,9 @@ Estos cambios mejoran la mantenibilidad, escalabilidad y siguen las mejores prá
 4. Service (services/)
    ↓ ejecuta lógica de negocio
 5. Model (models/)
-   ↓ estructura de datos
-6. Data (data/)
-   ↓ persistencia JSON
+   ↓ Mongoose Schema
+6. MongoDB Atlas
+   ↓ persistencia en la nube
 ```
 
 ### 📂 Explicación Detallada de Carpetas y Archivos
@@ -218,9 +227,10 @@ Estos cambios mejoran la mantenibilidad, escalabilidad y siguen las mejores prá
 - **Función**: Punto de entrada de la aplicación
 - **Responsabilidad**:
   - Carga las variables de entorno con `dotenv`
+  - Conecta a MongoDB Atlas usando Mongoose
   - Importa la configuración de Express desde `app.js`
   - Inicia el servidor en el puerto especificado
-  - Muestra mensaje en consola cuando el servidor está listo
+  - Muestra mensajes de conexión a BD y servidor
 
 **`app.js`**
 
@@ -235,17 +245,16 @@ Estos cambios mejoran la mantenibilidad, escalabilidad y siguen las mejores prá
 **`.env`**
 
 - **Función**: Variables de entorno
-- **Contenido**:
+- **Contenido actual**:
   - `PORT`: Puerto del servidor (3000)
-  - `NODE_ENV`: Entorno de ejecución (development/production)
-  - `HOST`: Host del servidor (localhost)
-  - `DATA_PATH`: Ruta a la carpeta de datos
+  - `MONGO_URI`: Cadena de conexión a MongoDB Atlas
 
 **`package.json`**
 
 - **Función**: Configuración del proyecto Node.js
-- **Contenido**:
-  - Dependencias del proyecto
+- **Contenido importante**:
+  - `"type": "module"` - Habilita ES Modules
+  - Dependencias del proyecto (Express, Mongoose, Pug, etc.)
   - Scripts de ejecución (`start`, `dev`)
   - Metadata del proyecto
 
@@ -254,36 +263,6 @@ Estos cambios mejoran la mantenibilidad, escalabilidad y siguen las mejores prá
 #### **📁 routes/** - Definición de Rutas
 
 **Función**: Define los endpoints de la API y vistas web. Son archivos **MUY SIMPLES** que solo mapean URLs a funciones del controller.
-
-**`clientes.js`**
-
-```javascript
-router.get("/api", ctrl.getAllClientes); // GET /clientes/api
-router.post("/api", ctrl.createCliente); // POST /clientes/api
-router.put("/api/:id", ctrl.updateCliente); // PUT /clientes/api/:id
-router.delete("/api/:id", ctrl.removeCliente); // DELETE /clientes/api/:id
-```
-
-- Define rutas API para operaciones CRUD de clientes
-- Delega toda la lógica al controller
-
-**`eventos.js`**
-
-```javascript
-// Rutas API
-router.get("/api", ctrl.getAllEventos);
-router.post("/api", ctrl.createEvento);
-// ... más rutas
-
-// Rutas Web (vistas)
-router.get("/", ctrl.listarEventos); // Vista lista
-router.get("/editar/:id", ctrl.mostrarFormularioEdicion);
-```
-
-- Define rutas API y rutas web (vistas)
-- Separa endpoints JSON de endpoints que renderizan HTML
-
----
 
 #### **📁 controllers/** - Controladores HTTP
 
@@ -298,27 +277,6 @@ router.get("/editar/:id", ctrl.mostrarFormularioEdicion);
 - ✅ Formatear y enviar respuestas HTTP (JSON o HTML)
 - ✅ Establecer códigos de estado (200, 201, 400, 404, 500)
 
-**`clientesController.js`**
-
-```javascript
-async function createCliente(req, res) {
-  try {
-    // 1. Validar entrada
-    if (!nombre || !email) {
-      return res.status(400).json({ error: "Datos incompletos" });
-    }
-
-    // 2. Llamar al service
-    const nuevo = await clientesService.crear(datos);
-
-    // 3. Responder
-    res.status(201).json(nuevo);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-}
-```
-
 **`eventosController.js`**
 
 - Maneja tanto endpoints API (JSON) como vistas web (HTML)
@@ -329,94 +287,26 @@ async function createCliente(req, res) {
 
 #### **📁 services/** - Lógica de Negocio
 
-**Función**: Contienen la **lógica de negocio pura** y acceso a datos. Son el **cerebro de la aplicación**.
+**Función**: Contienen la **lógica de negocio pura** y acceso a datos mediante Mongoose. Son el **cerebro de la aplicación**.
 
 **Responsabilidades:**
 
-- ✅ Operaciones CRUD (Create, Read, Update, Delete)
-- ✅ Leer/escribir en archivos JSON (base de datos)
+- ✅ Operaciones CRUD usando Mongoose
+- ✅ Interacción directa con MongoDB
 - ✅ Validaciones de negocio complejas
 - ✅ Procesamiento y transformación de datos
 - ✅ Reglas de negocio (ej: "no eliminar cliente con eventos activos")
 
-**`clientesService.js`**
-
-```javascript
-async function obtenerTodos() {
-  return await readDB(); // Lee clientes.json
-}
-
-async function crear(datosCliente) {
-  const clientes = await readDB();
-  const nuevoCliente = {
-    id: generarNuevoId(),
-    ...datosCliente,
-  };
-  clientes.push(nuevoCliente);
-  await writeDB(clientes); // Guarda en JSON
-  return nuevoCliente;
-}
-
-async function tieneEventosActivos(clienteId) {
-  // Lógica de negocio: validar dependencias
-  const eventos = await eventosService.obtenerTodos();
-  return eventos.some((e) => e.clienteId === clienteId);
-}
-```
-
-**`eventosService.js`**
-
-- Similar a clientesService
-- Funciones adicionales como `obtenerConCliente()` para incluir datos relacionados
-- Maneja la lógica de asociación entre eventos y clientes
-
-**¿Por qué separar Services de Controllers?**
-
-- **Reutilización**: Un service puede ser llamado desde múltiples controllers
-- **Testeo**: Se puede testear la lógica de negocio sin HTTP
-- **Mantenimiento**: Cambios en lógica no afectan las rutas ni controllers
-
 ---
 
-#### **📁 models/** - Modelos de Datos
+#### **📁 models/** - Modelos de Datos (Mongoose Schemas)
 
-**Función**: Definen la **estructura de datos** de las entidades del sistema.
+**Función**: Definen la **estructura de datos** usando Schemas de Mongoose para MongoDB.
 
-**`Cliente.js`**
-
-```javascript
-class Cliente {
-  constructor(id, nombre, email, telefono) {
-    this.id = id;
-    this.nombre = nombre;
-    this.email = email;
-    this.telefono = telefono;
-  }
-}
-```
-
-- Define qué campos tiene un cliente
-- Sirve como "contrato" de datos
-- Facilita la creación de objetos consistentes
-
-**`Evento.js`**
-
-```javascript
-class Evento {
-  constructor(id, nombre, fecha, lugar, presupuesto, estado, clienteId) {
-    this.id = id;
-    this.nombre = nombre;
-    this.fecha = fecha;
-    this.lugar = lugar;
-    this.presupuesto = presupuesto;
-    this.estado = estado;
-    this.clienteId = clienteId; // Relación con Cliente
-  }
-}
-```
-
-- Define la estructura de un evento
-- Incluye relación con clientes mediante `clienteId`
+- Define el schema de Evento con validaciones
+- Relación con Cliente mediante `ObjectId`
+- Enum para estados permitidos
+- Valores por defecto configurados
 
 ---
 
@@ -426,19 +316,34 @@ class Evento {
 
 **`layout.pug`**
 
-- Plantilla base que define la estructura común (header, footer, estilos)
+- Plantilla base que define la estructura común (header, nav, footer, estilos)
+- Menú de navegación: Inicio, Clientes, Eventos
 - Todas las demás vistas heredan de esta
 
 **`index.pug`**
 
 - Página principal de bienvenida
-- Muestra menú de navegación
+- Introducción al sistema de gestión de eventos
+
+**`clientes.pug`**
+
+- Lista todos los clientes en una tabla
+- Muestra nombre, email, teléfono
+- Formulario para crear nuevo cliente
+- Botones para editar y eliminar
+
+**`editarCliente.pug`**
+
+- Formulario para editar un cliente existente
+- Campos pre-cargados con datos actuales
+- Validaciones HTML5
 
 **`eventos.pug`**
 
 - Lista todos los eventos en una tabla
-- Muestra información del cliente asociado
-- Botones para crear, editar y eliminar
+- Muestra información del cliente asociado (usando populate)
+- Formulario para crear nuevo evento
+- Botones para editar y eliminar
 
 **`editarEvento.pug`**
 
@@ -448,40 +353,60 @@ class Evento {
 
 ---
 
-#### **📁 data/** - Persistencia de Datos
+#### **📁 config/** - Configuraciones
 
-**Función**: Almacenamiento de datos en formato JSON (simula una base de datos).
+**Función**: Archivos de configuración globales del proyecto.
 
-**`clientes.json`**
+**`db.js`**
 
-```json
-[
-  {
-    "id": 1,
-    "nombre": "Juan Pérez",
-    "email": "juan@example.com",
-    "telefono": "123456789"
-  }
-]
+- Configura y establece conexión a MongoDB Atlas
+- Usa variable de entorno `MONGO_URI`
+- Manejo de errores de conexión
+- Sale de la aplicación si falla la conexión
+
+---
+
+## 🗄️ **Base de Datos - MongoDB Atlas**
+
+### **¿Dónde están los datos?**
+
+Los datos se almacenan en **MongoDB Atlas** (nube), **NO en archivos locales**.
+
+```
+☁️ MongoDB Atlas (Internet)
+  └─ Cluster: cluster0
+      └─ Base de datos: (según tu MONGO_URI)
+          ├─ Colección: clientes
+          │   ├─ { _id: ObjectId, nombre, email, telefono }
+          │   ├─ { _id: ObjectId, nombre, email, telefono }
+          │   └─ ...
+          │
+          └─ Colección: eventos
+              ├─ { _id: ObjectId, nombre, fecha, lugar, presupuesto, estado, clienteId }
+              ├─ { _id: ObjectId, nombre, fecha, lugar, presupuesto, estado, clienteId }
+              └─ ...
 ```
 
-**`eventos.json`**
+### **Ventajas de MongoDB Atlas:**
 
-```json
-[
-  {
-    "id": 1,
-    "nombre": "Boda de María",
-    "fecha": "2025-12-15",
-    "lugar": "Salón Central",
-    "presupuesto": 50000,
-    "estado": "confirmado",
-    "clienteId": 1
-  }
-]
-```
+✅ **Base de datos en la nube** - Accesible desde cualquier lugar  
+✅ **Sin instalación local** - No necesitas instalar MongoDB en tu PC  
+✅ **Backups automáticos** - Tus datos están seguros  
+✅ **Gratis hasta 512MB** - Perfecto para desarrollo  
+✅ **Escalable** - Crece con tu proyecto
 
-**Nota**: En producción esto se reemplazaría por una base de datos real (MongoDB)
+### **Cómo ver tus datos:**
+
+1. **MongoDB Compass** (GUI recomendada):
+
+   - Descargar: https://www.mongodb.com/try/download/compass
+   - Conectar con tu `MONGO_URI`
+   - Explorar colecciones visualmente
+
+2. **MongoDB Atlas Web**:
+   - Ir a: https://cloud.mongodb.com/
+   - Iniciar sesión
+   - Database → Browse Collections
 
 ---
 
@@ -493,17 +418,6 @@ class Evento {
 
 - Estilos CSS para las vistas web
 - Tablas, formularios, botones, etc.
-
----
-
-#### **📁 config/** - Configuraciones (Futuro)
-
-**Función**: Archivos de configuración globales.
-
-**Archivos futuros:**
-
-- `db.js`: Configuración de base de datos
-- `constants.js`: Constantes globales (códigos de estado, mensajes)
 
 ---
 
@@ -520,11 +434,13 @@ class Evento {
 
 ## 📚 Próximos Pasos
 
-1. ✅ **Validaciones avanzadas** - Middleware de validación
-2. ✅ **Base de datos real** - Migrar a MongoDB
-3. ✅ **Autenticación** - Sistema de login y permisos
-4. ✅ **Testing** - Pruebas unitarias y de integración
-5. ✅ **Deploy** - Subir a producción (Heroku, Railway, Vercel)
+1. ⬜ **Validaciones avanzadas** - Middleware de validación con express-validator
+2. ✅ **Base de datos real** - ~~Migrar a MongoDB~~ ✅ **COMPLETADO**
+3. ⬜ **Autenticación** - Sistema de login con JWT y bcrypt
+4. ⬜ **Autorización** - Roles de usuario (admin, cliente, operador)
+5. ⬜ **Testing** - Pruebas unitarias con Jest
+6. ⬜ **Deploy** - Subir a producción (Railway, Render, o Vercel)
+7. ⬜ **Módulos adicionales** - Proveedores, Invitados, Presupuestos
 
 ---
 
