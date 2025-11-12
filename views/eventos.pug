@@ -1,62 +1,79 @@
 extends layout
 
 block content
-  h2 Lista de Eventos
+  .container.mt-4
+    .card.shadow-sm
+      .card-body
+        h2.text-primary.mb-3 Lista de Eventos
 
-  if eventos && eventos.length
-    table
-      thead
-        tr
-          th Nombre
-          th Fecha
-          th Lugar
-          th Presupuesto
-          th Estado
-          th Cliente
-          th Acciones
-      tbody
-        each e in eventos
-          tr
-            td #{e.nombre}
-            td #{e.fechaFormateada}
-            td #{e.lugar}
-            td $#{e.presupuesto}
-            td #{e.estado}
-            td #{e.clienteId ? e.clienteId.nombre : 'Sin asignar'}
-            td
-              a.editar-btn(href=`/eventos/editar/${e.id}`) ✏️
-              button.delete-btn(data-id=e.id data-nombre=e.nombre) 🗑️
-  else
-    p No hay eventos cargados.
+        if eventos && eventos.length
+          table.table.table-striped.table-hover.align-middle
+            thead.table-primary
+              tr
+                th Nombre
+                th Fecha
+                th Lugar
+                th Presupuesto
+                th Estado
+                th Cliente
+                th.text-center Acciones
+            tbody
+              each e in eventos
+                tr
+                  td #{e.nombre}
+                  td #{e.fechaFormateada}
+                  td #{e.lugar}
+                  td $#{e.presupuesto}
+                  td #{e.estado}
+                  td #{e.clienteId ? e.clienteId.nombre : 'Sin asignar'}
+                  td.text-center
+                    a.btn.btn-sm.btn-outline-secondary.me-2(href=`/eventos/editar/${e.id}`)
+                      i.bi.bi-pencil-fill
+                      |  Editar
+                    button.btn.btn-sm.btn-outline-danger.delete-btn(data-id=e.id data-nombre=e.nombre)
+                      i.bi.bi-trash-fill
+                      |  Eliminar
+        else
+          .alert.alert-info.mt-3 No hay eventos cargados.
 
-  h3 Agregar nuevo evento
-  form(action="/eventos" method="post")
-    div
-      input(type="text" name="nombre" placeholder="Nombre" required)
-    div
-      input(type="date" name="fecha" required)
-    div
-      input(type="text" name="lugar" placeholder="Lugar")
-    div
-      input(type="number" name="presupuesto" placeholder="Presupuesto")
-    div
-      select(name="estado")
-        option(value="Planificado") Planificado
-        option(value="En curso") En curso
-        option(value="Finalizado") Finalizado
-    div
-      select(name="clienteId" required)
-        option(value="") Seleccionar cliente
-        each c in clientes
-          option(value=c.id) #{c.nombre}
-    div
-      button(type="submit") Agregar
+    .card.mt-4.shadow-sm
+      .card-body
+        h3.text-primary.mb-3 Agregar nuevo evento
+        form(action="/eventos" method="post")
+          .row.g-3
+            .col-md-4
+              label.form-label(for="nombre") Nombre
+              input.form-control(type="text" name="nombre" required)
+            .col-md-4
+              label.form-label(for="fecha") Fecha
+              input.form-control(type="date" name="fecha" required)
+            .col-md-4
+              label.form-label(for="lugar") Lugar
+              input.form-control(type="text" name="lugar")
+            .col-md-4
+              label.form-label(for="presupuesto") Presupuesto
+              input.form-control(type="number" name="presupuesto")
+            .col-md-4
+              label.form-label(for="estado") Estado
+              select.form-select(name="estado")
+                option(value="Planificado") Planificado
+                option(value="En curso") En curso
+                option(value="Finalizado") Finalizado
+            .col-md-4
+              label.form-label(for="clienteId") Cliente
+              select.form-select(name="clienteId" required)
+                option(value="") Seleccionar cliente
+                each c in clientes
+                  option(value=c.id) #{c.nombre}
+          .mt-3
+            button.btn.btn-primary(type="submit") Agregar
 
   script.
     document.addEventListener('click', async (ev) => {
-      if (ev.target.matches('.delete-btn')) {
-        const id = ev.target.dataset.id;
-        const nombre = ev.target.dataset.nombre;
+      if (ev.target.closest('.delete-btn')) {
+        const btn = ev.target.closest('.delete-btn');
+        const id = btn.dataset.id;
+        const nombre = btn.dataset.nombre;
         if (!confirm('¿Eliminar evento: ' + nombre + '?')) return;
         const res = await fetch('/eventos/api/' + id, { method: 'DELETE' });
         if (res.ok) location.reload();

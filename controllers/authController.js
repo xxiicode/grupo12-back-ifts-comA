@@ -4,50 +4,83 @@ import Usuario from "../models/Usuario.js";
 
 const SECRET = process.env.JWT_SECRET || "claveSuperSecreta123";
 
-export async function registrar(req, res) {
-  try {
-    const { username, password, nombre, rol } = req.body;
-
-    const existe = await Usuario.findOne({ username });
-    if (existe) {
-      return res.status(400).json({ error: "El usuario ya existe" });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const nuevoUsuario = new Usuario({ username, passwordHash, nombre, rol });
-    await nuevoUsuario.save();
-
-    res.status(201).json({ mensaje: "Usuario registrado correctamente" });
-  } catch (error) {
-    res.status(500).json({ error: "Error al registrar", detalle: error.message });
-  }
-}
-
+// LOGIN
 export async function login(req, res) {
   try {
     const { username, password } = req.body;
 
     const usuario = await Usuario.findOne({ username });
-    const valido = usuario && await bcrypt.compare(password, usuario.passwordHash);
-    if (!valido) {
-      return res.status(401).json({ error: "Credenciales inválidas" });
+    if (!usuario) {
+      return res.status(401).render("login", { error: "Usuario no encontrado" });
     }
 
+    const valido = await bcrypt.compare(password, usuario.passwordHash);
+    if (!valido) {
+      return res.status(401).render("login", { error: "Credenciales inválidas" });
+    }
+
+    // Crear token JWT
     const token = jwt.sign(
       { id: usuario._id, username: usuario.username, rol: usuario.rol },
       SECRET,
       { expiresIn: "2h" }
     );
 
-    // Guarda token en cookie httpOnly
+    // Guardar token en cookie httpOnly
     res.cookie("token", token, { httpOnly: true, maxAge: 2 * 60 * 60 * 1000 });
-    res.redirect("/"); // Redirige al inicio tras login
+
+    // Redirigir al inicio
+    res.redirect("/");
   } catch (error) {
-    res.status(500).json({ error: "Error en login", detalle: error.message });
+    console.error("Error en login:", error);
+    res.status(500).render("login", { error: "Error interno del servidor" });
   }
 }
 
-export function logout(req, res) {
-  res.clearCookie("token");
-  res.redirect("/auth/login");
+//  LOGOUT
+export async function logout(req, res) {
+  try {
+    res.clearCookie("token");
+    res.render("login", { success: "Sesión cerrada correctamente." });
+  } catch (error) {
+    console.error("Error en logout:", error);
+    res.status(500).render("login", { error: "Error al cerrar sesión" });
+  }
+}
+
+//  REGISTRAR NUEVO USUARIO
+export async function registrar(req, res) {
+  try {
+    const { username, password, nombre, rol } = req.body;
+
+    // Validar datos
+    if (!username || !password || !rol) {
+      return res.status(400).render("register", { error: "Faltan datos obligatorios." });
+    }
+
+    // Verificar si ya existe un usuario con el mismo nombre
+    const existente = await Usuario.findOne({ username });
+    if (existente) {
+      return res.status(400).render("register", { error: "El nombre de usuario ya está registrado." });
+    }
+
+    // Hashear la contraseña
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Crear el nuevo usuario
+    const nuevoUsuario = new Usuario({
+      username,
+      passwordHash,
+      nombre,
+      rol,
+    });
+
+    await nuevoUsuario.save();
+
+    // Mostrar confirmación
+    res.render("register", { success: `Usuario "${username}" registrado correctamente.` });
+  } catch (error) {
+    console.error("Error en registrar:", error);
+    res.status(500).render("register", { error: "Error interno del servidor." });
+  }
 }

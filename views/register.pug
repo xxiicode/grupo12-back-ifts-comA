@@ -1,29 +1,29 @@
 extends layout
 
 block content
-  .form-container
-    h2 Registrar nuevo usuario
-    form(action="/auth/register" method="post")
-      .form-group
-        label(for="username") Usuario
-        input#username(type="text" name="username" required)
-
-      .form-group
-        label(for="password") Contraseña
-        input#password(type="password" name="password" required)
-
-      .form-group
-        label(for="nombre") Nombre completo
-        input#nombre(type="text" name="nombre")
-
-      .form-group
-        label(for="rol") Rol
-        select#rol(name="rol" required)
-          option(value="") Seleccionar rol
-          option(value="admin") Administrador
-          option(value="coordinador") Coordinador
-          option(value="asistente") Asistente
-          option(value="cliente") Cliente
-
-      button.btn-primary(type="submit") Crear usuario
-      a.btn-secondary(href="/") Cancelar
+  .row.justify-content-center
+    .col-md-8
+      .card.shadow-lg.p-4
+        h2.text-center.mb-4 Registrar nuevo usuario
+        form(action="/auth/register" method="post")
+          .row.g-3
+            .col-md-6
+              label.form-label(for="username") Usuario
+              input.form-control#username(type="text" name="username" required)
+            .col-md-6
+              label.form-label(for="password") Contraseña
+              input.form-control#password(type="password" name="password" required)
+            .col-md-6
+              label.form-label(for="nombre") Nombre completo
+              input.form-control#nombre(type="text" name="nombre")
+            .col-md-6
+              label.form-label(for="rol") Rol
+              select.form-select#rol(name="rol" required)
+                option(value="") Seleccionar rol
+                option(value="admin") Administrador
+                option(value="coordinador") Coordinador
+                option(value="asistente") Asistente
+                option(value="cliente") Cliente
+          .mt-3.d-flex.justify-content-between
+            a.btn.btn-outline-secondary(href="/") Cancelar
+            button.btn.btn-success(type="submit") Crear usuario

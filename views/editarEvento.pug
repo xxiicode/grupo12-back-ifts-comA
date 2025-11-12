@@ -1,40 +1,37 @@
 extends layout
 
 block content
-  .form-container
-    h2 Editar evento
+  .container.mt-4
+    .card.shadow-lg
+      .card-body
+        h2.text-primary.mb-4 Editar evento
 
-    form.form(action=`/eventos/editar/${evento.id}` method="post")
-      .form-group
-        label(for="nombre") Nombre
-        input#nombre(type="text" name="nombre" value=evento.nombre required)
-
-      .form-group
-        label(for="fecha") Fecha
-        input#fecha(type="date" name="fecha" value=evento.fechaFormateada required)
-
-      .form-group
-        label(for="lugar") Lugar
-        input#lugar(type="text" name="lugar" value=evento.lugar)
-
-      .form-group
-        label(for="presupuesto") Presupuesto
-        input#presupuesto(type="number" name="presupuesto" value=evento.presupuesto)
-
-      .form-group
-        label(for="estado") Estado
-        select#estado(name="estado")
-          option(value="Planificado" selected=evento.estado=="Planificado") Planificado
-          option(value="En curso" selected=evento.estado=="En curso") En curso
-          option(value="Finalizado" selected=evento.estado=="Finalizado") Finalizado
-
-      .form-group
-        label(for="clienteId") Cliente
-        select#clienteId(name="clienteId" required)
-          option(value="") -- Seleccionar cliente --
-          each c in clientes
-            option(value=c.id selected=(c.id == evento.clienteId)) #{c.nombre}
-
-      .form-actions
-        button.btn-primary(type="submit") Guardar cambios
-        a.btn-secondary(href="/eventos") Cancelar
+        form(action=`/eventos/editar/${evento.id}` method="post")
+          .row.g-3
+            .col-md-6
+              label.form-label(for="nombre") Nombre
+              input.form-control#nombre(type="text" name="nombre" value=evento.nombre required)
+            .col-md-6
+              label.form-label(for="fecha") Fecha
+              input.form-control#fecha(type="date" name="fecha" value=evento.fechaFormateada required)
+            .col-md-6
+              label.form-label(for="lugar") Lugar
+              input.form-control#lugar(type="text" name="lugar" value=evento.lugar)
+            .col-md-6
+              label.form-label(for="presupuesto") Presupuesto
+              input.form-control#presupuesto(type="number" name="presupuesto" value=evento.presupuesto)
+            .col-md-6
+              label.form-label(for="estado") Estado
+              select.form-select#estado(name="estado")
+                option(value="Planificado" selected=evento.estado=="Planificado") Planificado
+                option(value="En curso" selected=evento.estado=="En curso") En curso
+                option(value="Finalizado" selected=evento.estado=="Finalizado") Finalizado
+            .col-md-6
+              label.form-label(for="clienteId") Cliente
+              select.form-select#clienteId(name="clienteId" required)
+                option(value="") -- Seleccionar cliente --
+                each c in clientes
+                  option(value=c.id selected=(c.id == evento.clienteId)) #{c.nombre}
+          .mt-4.d-flex.justify-content-end.gap-2
+            a.btn.btn-outline-secondary(href="/eventos") Cancelar
+            button.btn.btn-success(type="submit") Guardar cambios

@@ -4,20 +4,74 @@ html
     meta(charset="utf-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title Eventify Manager
+
+    // ===== Bootstrap CSS =====
+    link(
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    )
+
+    // ===== Bootstrap Icons =====
+    link(
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    )
+
+    // ===== Estilos personalizados =====
     link(rel="stylesheet", href="/styles.css")
-  body
-    header
-      h1 Eventify Manager
-      nav
-        a(href="/") Inicio
-        if user
-          a(href="/clientes") Clientes
-          a(href="/eventos") Eventos
-          if user.rol == 'admin'
-            a(href="/auth/register") Registrar usuario
-          span(style="margin-left:1rem") Bienvenido #{user.username} (#{user.rol})
-          a(href="/auth/logout" style="margin-left:1rem; color:#ffd") Cerrar sesión
-        else
-          a(href="/auth/login" style="margin-left:1rem") Iniciar sesión
-    main
+
+  body.bg-light
+    // ===== Barra de navegación principal =====
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow-sm
+      .container
+        a.navbar-brand(href="/")
+          i.bi.bi-calendar-event.me-2
+          | Eventify Manager
+        button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav")
+          span.navbar-toggler-icon
+        .collapse.navbar-collapse#navbarNav
+          ul.navbar-nav.ms-auto.align-items-center
+            if user
+              li.nav-item
+                a.nav-link(href="/clientes")
+                  i.bi.bi-people-fill.me-1
+                  | Clientes
+              li.nav-item
+                a.nav-link(href="/eventos")
+                  i.bi.bi-calendar-check.me-1
+                  | Eventos
+              if user.rol == 'admin'
+                li.nav-item
+                  a.nav-link(href="/auth/register")
+                    i.bi.bi-person-plus-fill.me-1
+                    | Registrar usuario
+              li.nav-item
+                span.nav-link.disabled.text-light.me-2
+                  i.bi.bi-person-circle.me-1
+                  | #{user.username} (#{user.rol})
+              li.nav-item
+                a.nav-link.text-warning(href="/auth/logout")
+                  i.bi.bi-box-arrow-right.me-1
+                  | Cerrar sesión
+            else
+              li.nav-item
+                a.nav-link(href="/auth/login")
+                  i.bi.bi-box-arrow-in-right.me-1
+                  | Iniciar sesión
+
+    // ===== Contenido principal =====
+    main.container.mt-4
       block content
+
+    // ===== Footer =====
+    footer.text-center.text-muted.mt-5.mb-3.small
+      p.mb-0 © #{new Date().getFullYear()} Eventify Manager — Proyecto Backend
+
+    // ===== Bootstrap JS =====
+    script(
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    )

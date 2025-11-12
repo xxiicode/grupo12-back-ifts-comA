@@ -1,49 +1,62 @@
 extends layout
 
 block content
-  h2 Lista de Clientes
+  .container.mt-4
+    .card.shadow-sm
+      .card-body
+        h2.mb-3.text-primary Lista de Clientes
 
-  if clientes && clientes.length
-    table
-      thead
-        tr
-          th Nombre
-          th Email
-          th Teléfono
-          th Acciones
-      tbody
-        each c in clientes
-          tr
-            td #{c.nombre}
-            td #{c.email}
-            td #{c.telefono || 'N/A'}
-            td
-              a.editar-btn(href=`/clientes/editar/${c._id}`) ✏️
-              button.delete-btn(data-id=c._id data-nombre=c.nombre) 🗑️
-  else
-    p No hay clientes cargados.
+        if clientes && clientes.length
+          table.table.table-striped.table-hover.align-middle
+            thead.table-primary
+              tr
+                th Nombre
+                th Email
+                th Teléfono
+                th.text-center Acciones
+            tbody
+              each c in clientes
+                tr
+                  td #{c.nombre}
+                  td #{c.email}
+                  td #{c.telefono || 'N/A'}
+                  td.text-center
+                    a.btn.btn-sm.btn-outline-secondary.me-2(href=`/clientes/editar/${c._id}`) 
+                      i.bi.bi-pencil-fill
+                      |  Editar
+                    button.btn.btn-sm.btn-outline-danger.delete-btn(data-id=c._id data-nombre=c.nombre)
+                      i.bi.bi-trash-fill
+                      |  Eliminar
+        else
+          .alert.alert-info.mt-3 No hay clientes cargados.
 
-  h3 Agregar nuevo cliente
-  form(action="/clientes" method="post")
-    div
-      input(type="text" name="nombre" placeholder="Nombre completo" required)
-    div
-      input(type="email" name="email" placeholder="Email" required)
-    div
-      input(type="tel" name="telefono" placeholder="Teléfono")
-    div
-      button(type="submit") Agregar Cliente
+    .card.mt-4.shadow-sm
+      .card-body
+        h3.text-primary.mb-3 Agregar nuevo cliente
+        form(action="/clientes" method="post")
+          .row.g-3
+            .col-md-4
+              label.form-label(for="nombre") Nombre completo
+              input.form-control(type="text" name="nombre" required)
+            .col-md-4
+              label.form-label(for="email") Email
+              input.form-control(type="email" name="email" required)
+            .col-md-4
+              label.form-label(for="telefono") Teléfono
+              input.form-control(type="tel" name="telefono")
+          .mt-3
+            button.btn.btn-primary(type="submit") Agregar Cliente
 
   script.
     document.addEventListener('click', async (ev) => {
-      if (ev.target.matches('.delete-btn')) {
-        const id = ev.target.dataset.id;
-        const nombre = ev.target.dataset.nombre;
+      if (ev.target.closest('.delete-btn')) {
+        const btn = ev.target.closest('.delete-btn');
+        const id = btn.dataset.id;
+        const nombre = btn.dataset.nombre;
         if (!confirm('¿Eliminar cliente: ' + nombre + '?')) return;
         const res = await fetch('/clientes/api/' + id, { method: 'DELETE' });
-        if (res.ok) {
-          location.reload();
-        } else {
+        if (res.ok) location.reload();
+        else {
           const error = await res.json();
           alert(error.error || 'Error al eliminar');
         }
