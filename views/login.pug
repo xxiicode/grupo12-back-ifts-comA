@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  .form-container
+    h2 Iniciar sesión
+    form(action="/auth/login" method="post")
+      .form-group
+        label(for="username") Usuario
+        input#username(type="text" name="username" required)
+
+      .form-group
+        label(for="password") Contraseña
+        input#password(type="password" name="password" required)
+
+      button.btn-primary(type="submit") Entrar

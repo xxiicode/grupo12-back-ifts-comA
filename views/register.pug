@@ -1,0 +1,29 @@
+extends layout
+
+block content
+  .form-container
+    h2 Registrar nuevo usuario
+    form(action="/auth/register" method="post")
+      .form-group
+        label(for="username") Usuario
+        input#username(type="text" name="username" required)
+
+      .form-group
+        label(for="password") Contraseña
+        input#password(type="password" name="password" required)
+
+      .form-group
+        label(for="nombre") Nombre completo
+        input#nombre(type="text" name="nombre")
+
+      .form-group
+        label(for="rol") Rol
+        select#rol(name="rol" required)
+          option(value="") Seleccionar rol
+          option(value="admin") Administrador
+          option(value="coordinador") Coordinador
+          option(value="asistente") Asistente
+          option(value="cliente") Cliente
+
+      button.btn-primary(type="submit") Crear usuario
+      a.btn-secondary(href="/") Cancelar

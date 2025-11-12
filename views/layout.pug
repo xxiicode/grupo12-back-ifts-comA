@@ -2,6 +2,7 @@ doctype html
 html
   head
     meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title Eventify Manager
     link(rel="stylesheet", href="/styles.css")
   body
@@ -9,7 +10,14 @@ html
       h1 Eventify Manager
       nav
         a(href="/") Inicio
-        a(href="/clientes") Clientes
-        a(href="/eventos") Eventos
+        if user
+          a(href="/clientes") Clientes
+          a(href="/eventos") Eventos
+          if user.rol == 'admin'
+            a(href="/auth/register") Registrar usuario
+          span(style="margin-left:1rem") Bienvenido #{user.username} (#{user.rol})
+          a(href="/auth/logout" style="margin-left:1rem; color:#ffd") Cerrar sesión
+        else
+          a(href="/auth/login" style="margin-left:1rem") Iniciar sesión
     main
       block content
