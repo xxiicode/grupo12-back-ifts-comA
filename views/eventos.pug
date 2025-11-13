@@ -25,48 +25,61 @@ block content
                   td #{e.lugar}
                   td $#{e.presupuesto}
                   td #{e.estado}
-                  td #{e.clienteId ? e.clienteId.nombre : 'Sin asignar'}
+                  td #{e.clienteId ? (e.clienteId.nombre || e.clienteId.username) : 'Sin asignar'}
                   td.text-center
-                    a.btn.btn-sm.btn-outline-secondary.me-2(href=`/eventos/editar/${e.id}`)
-                      i.bi.bi-pencil-fill
-                      |  Editar
-                    button.btn.btn-sm.btn-outline-danger.delete-btn(data-id=e.id data-nombre=e.nombre)
-                      i.bi.bi-trash-fill
-                      |  Eliminar
+                    //  Solo roles autorizados pueden editar o eliminar
+                    if user && ["admin", "coordinador", "asistente"].includes(user.rol)
+                      a.btn.btn-sm.btn-outline-secondary.me-2(href=`/eventos/editar/${e.id}`)
+                        i.bi.bi-pencil-fill
+                        |  Editar
+                      button.btn.btn-sm.btn-outline-danger.me-2.delete-btn(data-id=e.id data-nombre=e.nombre)
+                        i.bi.bi-trash-fill
+                        |  Eliminar
+                    //  El chat está disponible para todos los roles (incluso cliente)
+                    a.btn.btn-sm.btn-outline-info(href=`/eventos/chat/${e.id}`)
+                      i.bi.bi-chat-dots-fill
+                      |  Chat
         else
           .alert.alert-info.mt-3 No hay eventos cargados.
 
-    .card.mt-4.shadow-sm
-      .card-body
-        h3.text-primary.mb-3 Agregar nuevo evento
-        form(action="/eventos" method="post")
-          .row.g-3
-            .col-md-4
-              label.form-label(for="nombre") Nombre
-              input.form-control(type="text" name="nombre" required)
-            .col-md-4
-              label.form-label(for="fecha") Fecha
-              input.form-control(type="date" name="fecha" required)
-            .col-md-4
-              label.form-label(for="lugar") Lugar
-              input.form-control(type="text" name="lugar")
-            .col-md-4
-              label.form-label(for="presupuesto") Presupuesto
-              input.form-control(type="number" name="presupuesto")
-            .col-md-4
-              label.form-label(for="estado") Estado
-              select.form-select(name="estado")
-                option(value="Planificado") Planificado
-                option(value="En curso") En curso
-                option(value="Finalizado") Finalizado
-            .col-md-4
-              label.form-label(for="clienteId") Cliente
-              select.form-select(name="clienteId" required)
-                option(value="") Seleccionar cliente
-                each c in clientes
-                  option(value=c.id) #{c.nombre}
-          .mt-3
-            button.btn.btn-primary(type="submit") Agregar
+    //  Solo roles autorizados pueden ver el formulario de agregar eventos
+    if user && ["admin", "coordinador", "asistente"].includes(user.rol)
+      if clientes && clientes.length
+        .card.mt-4.shadow-sm
+          .card-body
+            h3.text-primary.mb-3 Agregar nuevo evento
+            form(action="/eventos" method="post")
+              .row.g-3
+                .col-md-4
+                  label.form-label(for="nombre") Nombre
+                  input.form-control(type="text" name="nombre" required)
+                .col-md-4
+                  label.form-label(for="fecha") Fecha
+                  input.form-control(type="date" name="fecha" required)
+                .col-md-4
+                  label.form-label(for="lugar") Lugar
+                  input.form-control(type="text" name="lugar")
+                .col-md-4
+                  label.form-label(for="presupuesto") Presupuesto
+                  input.form-control(type="number" name="presupuesto")
+                .col-md-4
+                  label.form-label(for="estado") Estado
+                  select.form-select(name="estado")
+                    option(value="Planificado") Planificado
+                    option(value="En curso") En curso
+                    option(value="Finalizado") Finalizado
+                .col-md-4
+                  label.form-label(for="clienteId") Cliente
+                  select.form-select(name="clienteId" required)
+                    option(value="") Seleccionar cliente
+                    each c in clientes
+                      option(value=c._id) #{c.nombre || c.username} (#{c.username})
+              .mt-3
+                button.btn.btn-primary(type="submit") Agregar
+    else
+      .alert.alert-secondary.mt-4.text-center
+        i.bi.bi-lock-fill.me-2
+        | No tienes permisos para agregar eventos.
 
   script.
     document.addEventListener('click', async (ev) => {

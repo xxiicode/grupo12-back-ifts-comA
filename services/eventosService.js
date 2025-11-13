@@ -1,82 +1,52 @@
 import Evento from "../models/Evento.js";
-import Cliente from "../models/Cliente.js";
 
-// ========== LÓGICA DE NEGOCIO (SERVICES) ==========
+// =========================================
+// SERVICIO DE EVENTOS (CAPA INTERMEDIA)
+// =========================================
+// Encapsula toda la lógica de acceso a la base de datos,
+// manteniendo el código más limpio en el controlador.
 
-// Obtener todos los eventos
-async function obtenerTodos() {
-  try {
-    return await Evento.find().sort({ fecha: 1 });
-  } catch (error) {
-    throw new Error("Error al obtener eventos: " + error.message);
-  }
+// Obtener todos los eventos (sin cliente)
+export async function obtenerTodos() {
+  return await Evento.find().sort({ fecha: 1 });
 }
 
-// Buscar evento por ID
-async function buscarPorId(id) {
-  try {
-    return await Evento.findById(id);
-  } catch (error) {
-    throw new Error("Error al buscar evento: " + error.message);
-  }
+// Obtener evento por ID (sin cliente)
+export async function buscarPorId(id) {
+  return await Evento.findById(id);
 }
 
 // Crear nuevo evento
-async function crear(datosEvento) {
-  try {
-    const nuevoEvento = new Evento(datosEvento);
-    await nuevoEvento.save();
-    return nuevoEvento;
-  } catch (error) {
-    throw new Error("Error al crear evento: " + error.message);
-  }
+export async function crear(data) {
+  const nuevoEvento = new Evento(data);
+  return await nuevoEvento.save();
 }
 
-// Actualizar evento
-async function actualizar(id, datosEvento) {
-  try {
-    const actualizado = await Evento.findByIdAndUpdate(id, datosEvento, { new: true });
-    return actualizado;
-  } catch (error) {
-    throw new Error("Error al actualizar evento: " + error.message);
-  }
+// Actualizar evento existente
+export async function actualizar(id, data) {
+  const eventoActualizado = await Evento.findByIdAndUpdate(id, data, { new: true });
+  return eventoActualizado;
 }
 
 // Eliminar evento
-async function eliminar(id) {
-  try {
-    const eliminado = await Evento.findByIdAndDelete(id);
-    return !!eliminado;
-  } catch (error) {
-    throw new Error("Error al eliminar evento: " + error.message);
-  }
+export async function eliminar(id) {
+  const eliminado = await Evento.findByIdAndDelete(id);
+  return eliminado;
 }
 
-// Obtener evento con cliente incluido
-async function obtenerConCliente(id) {
-  try {
-    const evento = await Evento.findById(id).populate("clienteId", "nombre email telefono");
-    return evento;
-  } catch (error) {
-    throw new Error("Error al obtener evento con cliente: " + error.message);
-  }
+// =========================================
+// MÉTODOS CON RELACIONES (populate)
+// =========================================
+
+// Obtener todos los eventos con datos del cliente
+export async function obtenerTodosConClientes() {
+  return await Evento.find()
+    .populate("clienteId", "nombre username email telefono dni")
+    .sort({ fecha: 1 });
 }
 
-// Obtener todos los eventos con sus clientes
-async function obtenerTodosConClientes() {
-  try {
-    return await Evento.find().populate("clienteId", "nombre email telefono").sort({ fecha: 1 });
-  } catch (error) {
-    throw new Error("Error al obtener eventos con clientes: " + error.message);
-  }
+// Obtener un evento con su cliente asignado
+export async function obtenerConCliente(id) {
+  return await Evento.findById(id)
+    .populate("clienteId", "nombre username email telefono dni");
 }
-
-export {
-  obtenerTodos,
-  buscarPorId,
-  crear,
-  actualizar,
-  eliminar,
-  obtenerConCliente,
-  obtenerTodosConClientes
-};

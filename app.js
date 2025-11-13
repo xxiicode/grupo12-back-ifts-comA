@@ -5,8 +5,9 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
 import eventosRoutes from "./routes/eventos.js";
-import clientesRoutes from "./routes/clientes.js";
+import usuariosRoutes from "./routes/usuarios.js";
 import authRoutes from "./routes/auth.js";
+import chatRoutes from "./routes/chat.js";
 
 import { verificarToken } from "./middlewares/authMiddleware.js";
 import { autorizarRoles } from "./middlewares/rolMiddleware.js";
@@ -31,29 +32,29 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-//  ejecuta verificarToken 
+// Ejecuta verificarToken en todas las rutas (para decodificar JWT si existe)
 app.use(verificarToken);
 
 // =============================
 // Rutas públicas (sin login)
 // =============================
 app.use("/auth", authRoutes);
+app.use("/chat", chatRoutes);
 
 // =============================
 // Rutas protegidas con JWT + roles
 // =============================
 
-// Solo admin o coordinador pueden gestionar clientes
-app.use("/clientes", autorizarRoles("admin", "coordinador"), clientesRoutes);
+// Solo admin o coordinador pueden gestionar clientes (usuarios con rol "cliente")
+app.use("/usuarios", verificarToken, autorizarRoles("admin", "coordinador"), usuariosRoutes);
 
-// Admin, coordinador y asistente pueden ver eventos
-app.use("/eventos", autorizarRoles("admin", "coordinador", "asistente"), eventosRoutes);
+// Admin, coordinador y asistente pueden gestionar eventos
+app.use("/eventos", verificarToken, eventosRoutes);
 
 // =============================
 // Página de inicio (dashboard)
 // =============================
 app.get("/", (req, res) => {
-  // Si hay usuario logueado, se muestra desde res.locals.user
   res.render("index");
 });
 

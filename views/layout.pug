@@ -34,23 +34,33 @@ html
         .collapse.navbar-collapse#navbarNav
           ul.navbar-nav.ms-auto.align-items-center
             if user
-              li.nav-item
-                a.nav-link(href="/clientes")
-                  i.bi.bi-people-fill.me-1
-                  | Clientes
+              // ===== Clientes =====
+              if ["admin", "coordinador", "asistente"].includes(user.rol)
+                li.nav-item
+                  a.nav-link(href="/usuarios/clientes")
+                    i.bi.bi-people-fill.me-1
+                    | Clientes
+
+              // ===== Eventos (visible para todos los roles logueados) =====
               li.nav-item
                 a.nav-link(href="/eventos")
                   i.bi.bi-calendar-check.me-1
                   | Eventos
+
+              // ===== Registrar usuario (solo admin) =====
               if user.rol == 'admin'
                 li.nav-item
                   a.nav-link(href="/auth/register")
                     i.bi.bi-person-plus-fill.me-1
                     | Registrar usuario
+
+              // ===== Usuario actual =====
               li.nav-item
                 span.nav-link.disabled.text-light.me-2
                   i.bi.bi-person-circle.me-1
                   | #{user.username} (#{user.rol})
+
+              // ===== Logout =====
               li.nav-item
                 a.nav-link.text-warning(href="/auth/logout")
                   i.bi.bi-box-arrow-right.me-1

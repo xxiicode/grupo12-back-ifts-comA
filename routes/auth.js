@@ -17,11 +17,11 @@ router.post("/login", login);
 router.get("/logout", logout);
 
 //  Mostrar formulario de registro (solo admin)
-router.get("/register", verificarToken, autorizarRoles(["admin"]), (req, res) => {
+router.get("/register", verificarToken, autorizarRoles("admin"), (req, res) => {
   res.render("register");
 });
 
 //  Procesar registro (solo admin)
-router.post("/register", verificarToken, autorizarRoles(["admin"]), registrar);
+router.post("/register", verificarToken, autorizarRoles("admin"), registrar);
 
 export default router;

@@ -8,7 +8,11 @@ const usuarioSchema = new mongoose.Schema({
     type: String, 
     enum: ["admin", "coordinador", "asistente", "cliente"], 
     default: "asistente" 
-  }
+  },
+
+  dni: { type: String },
+  email: { type: String, unique: false }, //  unique: true para evitar duplicados
+  telefono: { type: String }
 });
 
 usuarioSchema.set("toJSON", {

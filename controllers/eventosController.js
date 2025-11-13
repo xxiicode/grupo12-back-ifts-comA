@@ -1,8 +1,10 @@
 import Evento from "../models/Evento.js";
 import * as eventosService from "../services/eventosService.js";
-import * as clientesService from "../services/clientesService.js";
+import Usuario from "../models/Usuario.js";
 
-// ========== CONTROLADORES API (MANEJAN REQ/RES) ==========
+// ==============================
+// CONTROLADORES API
+// ==============================
 
 // Obtener todos los eventos (API)
 async function getAllEventos(req, res) {
@@ -10,9 +12,7 @@ async function getAllEventos(req, res) {
     const eventos = await eventosService.obtenerTodos();
     res.json(eventos);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al obtener eventos", detalle: error.message });
+    res.status(500).json({ error: "Error al obtener eventos", detalle: error.message });
   }
 }
 
@@ -20,29 +20,29 @@ async function getAllEventos(req, res) {
 async function getEventoById(req, res) {
   try {
     const evento = await eventosService.buscarPorId(req.params.id);
-
-    if (!evento) {
-      return res.status(404).json({ error: "Evento no encontrado" });
-    }
-
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
     res.json(evento);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al buscar evento", detalle: error.message });
+    res.status(500).json({ error: "Error al buscar evento", detalle: error.message });
   }
 }
 
 // Crear nuevo evento (API)
 async function createEvento(req, res) {
   try {
-    const { nombre, fecha, lugar, presupuesto, estado, clienteId } = req.body;
+    const usuario = req.user || res.locals.user;
+    if (!["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      return res.status(403).json({ error: "No tienes permiso para crear eventos" });
+    }
 
-    // Validaciones
+    const { nombre, fecha, lugar, presupuesto, estado, clienteId } = req.body;
     if (!nombre || !fecha || !clienteId) {
-      return res
-        .status(400)
-        .json({ error: "Nombre, fecha y clienteId son obligatorios" });
+      return res.status(400).json({ error: "Nombre, fecha y clienteId son obligatorios" });
+    }
+
+    const cliente = await Usuario.findById(clienteId);
+    if (!cliente || cliente.rol !== "cliente") {
+      return res.status(400).json({ error: "El clienteId no corresponde a un usuario válido con rol 'cliente'" });
     }
 
     const nuevoEvento = await eventosService.crear({
@@ -56,125 +56,111 @@ async function createEvento(req, res) {
 
     res.status(201).json(nuevoEvento);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al crear evento", detalle: error.message });
+    res.status(500).json({ error: "Error al crear evento", detalle: error.message });
   }
 }
 
 // Actualizar evento (API)
 async function updateEvento(req, res) {
   try {
-    const data = { ...req.body };
-    if (data.presupuesto) data.presupuesto = Number(data.presupuesto);
-    if (data.clienteId) data.clienteId = Number(data.clienteId);
-
-    const actualizado = await eventosService.actualizar(req.params.id, data);
-
-    if (!actualizado) {
-      return res.status(404).json({ error: "Evento no encontrado" });
+    const usuario = req.user || res.locals.user;
+    if (!["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      return res.status(403).json({ error: "No tienes permiso para editar eventos" });
     }
 
+    const actualizado = await eventosService.actualizar(req.params.id, req.body);
+    if (!actualizado) return res.status(404).json({ error: "Evento no encontrado" });
     res.json(actualizado);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al actualizar evento", detalle: error.message });
+    res.status(500).json({ error: "Error al actualizar evento", detalle: error.message });
   }
 }
 
 // Eliminar evento (API)
 async function removeEvento(req, res) {
   try {
-    const eliminado = await eventosService.eliminar(req.params.id);
-
-    if (!eliminado) {
-      return res.status(404).json({ error: "Evento no encontrado" });
+    const usuario = req.user || res.locals.user;
+    if (!["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      return res.status(403).json({ error: "No tienes permiso para eliminar eventos" });
     }
 
+    const eliminado = await eventosService.eliminar(req.params.id);
+    if (!eliminado) return res.status(404).json({ error: "Evento no encontrado" });
     res.json({ ok: true, mensaje: "Evento eliminado correctamente" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al eliminar evento", detalle: error.message });
+    res.status(500).json({ error: "Error al eliminar evento", detalle: error.message });
   }
 }
 
-// Obtener evento con cliente incluido (API especial)
+// Obtener evento con cliente incluido (API)
 async function getEventoWithCliente(req, res) {
   try {
     const evento = await eventosService.obtenerConCliente(req.params.id);
-
-    if (!evento) {
-      return res.status(404).json({ error: "Evento no encontrado" });
-    }
-
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
     res.json(evento);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        error: "Error al obtener evento completo",
-        detalle: error.message,
-      });
+    res.status(500).json({ error: "Error al obtener evento completo", detalle: error.message });
   }
 }
 
-// ========== CONTROLADORES WEB (VISTAS PUG) ==========
+// ==============================
+// CONTROLADORES WEB (PUG)
+// ==============================
 
-// Listar todos los eventos (Vista)
+// Listar eventos (Vista) con control por rol
 async function listarEventos(req, res) {
   try {
-    // Trae todos los eventos con el cliente populado
-    const eventosConCliente = await eventosService.obtenerTodosConClientes();
-    const clientes = await clientesService.obtenerTodos();
+    const usuario = res.locals.user; // viene del middleware verificarToken
+    let eventosConCliente = [];
 
-    // Formateo cada evento
-    const eventosFormateados = eventosConCliente.map(e => {
-      let fechaFormateada = '';
+    if (["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      // Roles internos: ver todos los eventos
+      eventosConCliente = await eventosService.obtenerTodosConClientes();
+    } else if (usuario.rol === "cliente") {
+      // Cliente: solo su evento asignado
+      eventosConCliente = await Evento.find({ clienteId: usuario._id })
+        .populate("clienteId", "nombre username email");
+    } else {
+      return res.status(403).render("error", { mensaje: "Acceso denegado" });
+    }
 
-      // Evita el corrimiento de fecha por timezone (usa UTC)
-      if (e.fecha) {
-        const fecha = new Date(e.fecha);
-        const year = fecha.getUTCFullYear();
-        const month = String(fecha.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(fecha.getUTCDate()).padStart(2, '0');
-        fechaFormateada = `${day}/${month}/${year}`;
-      }
+    // Clientes disponibles para el <select> (solo si el usuario tiene permiso)
+    const clientes =
+      ["admin", "coordinador", "asistente"].includes(usuario.rol)
+        ? await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 })
+        : [];
 
+    const eventosFormateados = eventosConCliente.map((e) => {
+      const fecha = e.fecha ? new Date(e.fecha) : null;
+      const fechaFormateada = fecha ? fecha.toISOString().split("T")[0] : "";
       return {
-        ...e._doc,                        
-        id: e._id.toString(),             
-        fechaFormateada,                  
-        cliente: e.clienteId || null      
+        ...e._doc,
+        id: e._id.toString(),
+        fechaFormateada,
+        cliente: e.clienteId || null,
       };
     });
 
-    // Renderizar la vista con datos procesados
     res.render("eventos", { eventos: eventosFormateados, clientes });
-
   } catch (error) {
     console.error("Error al cargar eventos:", error);
     res.status(500).send("Error al cargar eventos");
   }
 }
 
-
-// Crear nuevo evento desde formulario web
+// Crear evento desde formulario web
 async function crearEventoWeb(req, res) {
   try {
-    const { nombre, fecha, lugar, presupuesto, estado, clienteId } = req.body;
+    const usuario = res.locals.user;
+    if (!["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      return res.status(403).render("error", { mensaje: "No tienes permiso para crear eventos" });
+    }
 
-    await eventosService.crear({
-      nombre,
-      fecha,
-      lugar,
-      presupuesto,
-      estado,
-      clienteId,
-    });
+    const { nombre, fecha, lugar, presupuesto, estado, clienteId } = req.body;
+    await eventosService.crear({ nombre, fecha, lugar, presupuesto, estado, clienteId });
     res.redirect("/eventos");
   } catch (error) {
+    console.error("Error al crear evento:", error);
     res.status(500).send("Error al crear evento");
   }
 }
@@ -182,23 +168,22 @@ async function crearEventoWeb(req, res) {
 // Mostrar formulario de edición
 async function mostrarFormularioEdicion(req, res) {
   try {
+    const usuario = res.locals.user;
+    if (!["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      return res.status(403).render("error", { mensaje: "No tienes permiso para editar eventos" });
+    }
+
     const evento = await eventosService.buscarPorId(req.params.id);
+    if (!evento) return res.status(404).send("Evento no encontrado");
 
-    if (!evento) {
-      return res.status(404).send("Evento no encontrado");
-    }
-
-    const clientes = await clientesService.obtenerTodos();
-
-    if (evento && evento.fecha) {
-      const fecha = new Date(evento.fecha);
-      evento.fechaFormateada = fecha.toISOString().split("T")[0];
-    } else {
-      evento.fechaFormateada = "";
-    }
+    const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+    evento.fechaFormateada = evento.fecha
+      ? new Date(evento.fecha).toISOString().split("T")[0]
+      : "";
 
     res.render("editarEvento", { evento, clientes });
   } catch (error) {
+    console.error("Error al cargar formulario de edición:", error);
     res.status(500).send("Error al cargar formulario de edición");
   }
 }
@@ -206,45 +191,57 @@ async function mostrarFormularioEdicion(req, res) {
 // Guardar cambios desde formulario
 async function guardarEdicionWeb(req, res) {
   try {
-    const data = { ...req.body };
-    if (data.presupuesto) data.presupuesto = Number(data.presupuesto);
-   
-    await eventosService.actualizar(req.params.id, data);
+    const usuario = res.locals.user;
+    if (!["admin", "coordinador", "asistente"].includes(usuario.rol)) {
+      return res.status(403).render("error", { mensaje: "No tienes permiso para editar eventos" });
+    }
+
+    await eventosService.actualizar(req.params.id, req.body);
     res.redirect("/eventos");
   } catch (error) {
+    console.error("Error al guardar cambios:", error);
     res.status(500).send("Error al guardar cambios");
   }
 }
 
-// ========== FUNCIONES AUXILIARES (PARA OTROS CONTROLADORES) ==========
+// Mostrar chat del evento con control de acceso
+async function mostrarChatEvento(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const evento = await eventosService.obtenerConCliente(req.params.id);
+    if (!evento) return res.status(404).send("Evento no encontrado");
 
-async function getAllData() {
-  return await eventosService.obtenerTodos();
-}
+    const puedeAcceder =
+      ["admin", "coordinador", "asistente"].includes(usuario.rol) ||
+      (usuario.rol === "cliente" && evento.clienteId?._id.toString() === usuario._id.toString());
 
-async function getById(id) {
-  return await eventosService.buscarPorId(id);
-}
+    if (!puedeAcceder) {
+      return res.status(403).render("error", { mensaje: "No tienes permiso para ver este chat" });
+    }
 
-async function getByIdWithCliente(id) {
-  return await eventosService.obtenerConCliente(id);
+    const fechaFormateada = evento.fecha
+      ? new Date(evento.fecha).toISOString().split("T")[0]
+      : "";
+
+    res.render("chatEvento", {
+      evento: { ...evento._doc, id: evento._id.toString(), fechaFormateada },
+    });
+  } catch (error) {
+    console.error("Error al cargar chat:", error);
+    res.status(500).send("Error al cargar chat");
+  }
 }
 
 export {
-  // Controladores API
   getAllEventos,
   getEventoById,
   createEvento,
   updateEvento,
   removeEvento,
   getEventoWithCliente,
-  // Controladores Web
   listarEventos,
   crearEventoWeb,
   mostrarFormularioEdicion,
   guardarEdicionWeb,
-  // Funciones auxiliares
-  getAllData,
-  getById,
-  getByIdWithCliente,
+  mostrarChatEvento,
 };

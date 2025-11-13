@@ -6,15 +6,18 @@ export function verificarToken(req, res, next) {
   try {
     const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
-      res.locals.user = null; // ← aseguramos que las vistas sepan que no hay usuario
+      res.locals.user = null;
       return next();
     }
 
     const decoded = jwt.verify(token, SECRET);
-    req.user = decoded;
-    res.locals.user = decoded; // ← accesible en Pug
+
+    req.user = { ...decoded, _id: decoded.id };
+    res.locals.user = { ...decoded, _id: decoded.id };
+
     next();
-  } catch {
+  } catch (error) {
+    console.error("Error al verificar token:", error.message);
     res.clearCookie("token");
     res.locals.user = null;
     next();

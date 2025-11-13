@@ -37,4 +37,7 @@ router.get('/editar/:id', ctrl.mostrarFormularioEdicion);
 // Guardar cambios desde formulario
 router.post('/editar/:id', ctrl.guardarEdicionWeb);
 
+// Mostrar chat del evento
+router.get('/chat/:id', ctrl.mostrarChatEvento);
+
 export default router;

@@ -49,38 +49,38 @@ export async function logout(req, res) {
 }
 
 //  REGISTRAR NUEVO USUARIO
+// ...
 export async function registrar(req, res) {
   try {
-    const { username, password, nombre, rol } = req.body;
+    const { username, password, nombre, rol, dni, email, telefono } = req.body;
 
-    // Validar datos
     if (!username || !password || !rol) {
       return res.status(400).render("register", { error: "Faltan datos obligatorios." });
     }
 
-    // Verificar si ya existe un usuario con el mismo nombre
     const existente = await Usuario.findOne({ username });
     if (existente) {
       return res.status(400).render("register", { error: "El nombre de usuario ya está registrado." });
     }
 
-    // Hashear la contraseña
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Crear el nuevo usuario
     const nuevoUsuario = new Usuario({
       username,
       passwordHash,
       nombre,
       rol,
+      dni,
+      email,
+      telefono
     });
 
     await nuevoUsuario.save();
 
-    // Mostrar confirmación
     res.render("register", { success: `Usuario "${username}" registrado correctamente.` });
   } catch (error) {
     console.error("Error en registrar:", error);
     res.status(500).render("register", { error: "Error interno del servidor." });
   }
 }
+
