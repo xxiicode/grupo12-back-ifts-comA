@@ -1,5 +1,3 @@
-// routes/usuarios.js
-
 import express from "express";
 import {
   listarClientes,

@@ -10,15 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const usuario = { username: usuarioNombre, rol: usuarioRol };
 
   // ==============================
-  // 1️⃣ Unirse a la sala del evento
+  // Unirse a la sala del evento
   // ==============================
   socket.on("connect", () => {
     socket.emit("joinEvent", { eventoId });
-    console.log(`🟢 Conectado al chat del evento ${eventoId}`);
+    console.log(`Conectado al chat del evento ${eventoId}`);
   });
 
   // ==============================
-  // 2️⃣ Cargar historial al ingresar
+  // Cargar historial al ingresar
   // ==============================
   async function cargarHistorial() {
     try {
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cargarHistorial();
 
   // ==============================
-  // 3️⃣ Recibir mensajes en vivo
+  // Recibir mensajes en vivo
   // ==============================
 socket.on("mensaje", (data) => {
   const div = document.createElement("div");
@@ -69,7 +69,7 @@ socket.on("mensaje", (data) => {
 
 
   // ==============================
-  // 4️⃣ Enviar nuevos mensajes
+  // Enviar nuevos mensajes
   // ==============================
   form.addEventListener("submit", (e) => {
     e.preventDefault();

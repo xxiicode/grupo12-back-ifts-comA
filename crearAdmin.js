@@ -10,7 +10,7 @@ const MONGO_URI = process.env.MONGO_URI;
 async function crearUsuariosIniciales() {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log("✅ Conectado a MongoDB Atlas");
+    console.log("Conectado a MongoDB Atlas");
 
     // ========================
     // ADMIN PRINCIPAL
@@ -28,9 +28,9 @@ async function crearUsuariosIniciales() {
         telefono: "1100000000",
       });
       await admin.save();
-      console.log("👑 Usuario admin creado (user: admin / pass: admin123)");
+      console.log("Usuario admin creado (user: admin / pass: admin123)");
     } else {
-      console.log("⚠️ Ya existe un usuario admin, no se creará otro.");
+      console.log("Ya existe un usuario admin, no se creará otro.");
     }
 
     // ========================
@@ -58,18 +58,18 @@ async function crearUsuariosIniciales() {
             telefono: `11${Math.floor(40000000 + Math.random() * 49999999)}`,
           });
           await nuevo.save();
-          console.log(`✅ Usuario ${rol} creado: ${username} / pass: 123456`);
+          console.log(`Usuario ${rol} creado: ${username} / pass: 123456`);
         } else {
-          console.log(`⚠️ El usuario ${username} ya existe, omitido.`);
+          console.log(`El usuario ${username} ya existe, omitido.`);
         }
       }
     }
 
-    console.log("\n🚀 Creación de usuarios iniciales completada.");
+    console.log("\n Creación de usuarios iniciales completada.");
     await mongoose.connection.close();
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error al crear usuarios iniciales:", error.message);
+    console.error(" Error al crear usuarios iniciales:", error.message);
     process.exit(1);
   }
 }

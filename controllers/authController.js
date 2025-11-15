@@ -49,7 +49,7 @@ export async function logout(req, res) {
 }
 
 //  REGISTRAR NUEVO USUARIO
-// ...
+
 export async function registrar(req, res) {
   try {
     const { username, password, nombre, rol, dni, email, telefono } = req.body;

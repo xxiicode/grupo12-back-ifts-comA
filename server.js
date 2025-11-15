@@ -37,7 +37,7 @@ const PORT = process.env.PORT || 3000;
       socket.user = decoded; // { id, username, rol }
       next();
     } catch (err) {
-      console.log("❌ Error al verificar token de socket:", err.message);
+      console.log("Error al verificar token de socket:", err.message);
       next();
     }
   });
@@ -46,7 +46,7 @@ const PORT = process.env.PORT || 3000;
   // Conexión de clientes
   // ============================
   io.on("connection", (socket) => {
-    console.log("⚡ WS conectado:", socket.id, "user:", socket.user?.username || "anon");
+    console.log(" WS conectado:", socket.id, "user:", socket.user?.username || "anon");
 
     // Unirse a la sala del evento (canal del chat)
 socket.on("joinEvent", async ({ eventoId }) => {
@@ -60,7 +60,7 @@ socket.on("joinEvent", async ({ eventoId }) => {
       (user.rol === "cliente" && evento.clienteId?.toString() === user.id)
     ) {
       socket.join(eventoId);
-      console.log(`✅ ${user.username} se unió a la sala ${eventoId}`);
+      console.log(` ${user.username} se unió a la sala ${eventoId}`);
     } else {
       socket.emit("errorEvento", { message: "No autorizado para este evento" });
     }
@@ -92,12 +92,12 @@ socket.on("joinEvent", async ({ eventoId }) => {
           creadoEn: nuevoMsg.createdAt || new Date(),
         });
       } catch (err) {
-        console.error("❌ Error al procesar mensaje:", err);
+        console.error("Error al procesar mensaje:", err);
       }
     });
 
     socket.on("disconnect", () => {
-      console.log("🔌 WS desconectado:", socket.id);
+      console.log("WS desconectado:", socket.id);
     });
   });
 
@@ -105,6 +105,6 @@ socket.on("joinEvent", async ({ eventoId }) => {
   // Iniciar servidor HTTP
   // ============================
   server.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
   });
 })();
