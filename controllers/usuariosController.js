@@ -77,3 +77,58 @@ export async function eliminarCliente(req, res) {
     res.status(500).json({ error: "Error al eliminar cliente" });
   }
 }
+
+
+// ===========================
+// Crear cliente
+// ===========================
+
+export async function registrarCliente(req, res) {
+  try {
+    const { username, password, nombre, dni, email, telefono } = req.body;
+
+    if (!username || !password) {
+      const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+      return res.render("clientes", {
+        clientes,
+        error: "Faltan datos obligatorios."
+      });
+    }
+
+    const existe = await Usuario.findOne({ username });
+    if (existe) {
+      const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+      return res.render("clientes", {
+        clientes,
+        error: "El usuario ya existe."
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await Usuario.create({
+      username,
+      passwordHash,
+      nombre,
+      dni,
+      email,
+      telefono,
+      rol: "cliente"
+    });
+
+    const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+    return res.render("clientes", {
+      clientes,
+      success: `Cliente "${username}" creado correctamente.`
+    });
+
+  } catch (err) {
+    console.error(err);
+    const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+    return res.render("clientes", {
+      clientes,
+      error: "Error interno al crear cliente."
+    });
+  }
+}
+

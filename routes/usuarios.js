@@ -8,6 +8,7 @@ import {
 
 import { verificarToken } from "../middlewares/authMiddleware.js";
 import { autorizarRoles } from "../middlewares/rolMiddleware.js";
+import { registrarCliente } from "../controllers/usuariosController.js";
 
 const router = express.Router();
 
@@ -25,5 +26,8 @@ router.post("/editar/:id", guardarEdicion);
 
 // Eliminar cliente (AJAX)
 router.delete("/api/:id", eliminarCliente);
+
+// Registrar cliente
+router.post("/clientes/crear", registrarCliente);
 
 export default router;

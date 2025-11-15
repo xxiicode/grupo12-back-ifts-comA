@@ -2,6 +2,14 @@ extends layout
 
 block content
   .container.mt-4
+
+    // ===== MENSAJES DE ERROR / ÉXITO =====
+    if error
+      .alert.alert-danger(role="alert") #{error}
+
+    if success
+      .alert.alert-success(role="alert") #{success}
+
     // ===== LISTADO DE CLIENTES =====
     .card.shadow-sm
       .card-body
@@ -43,7 +51,8 @@ block content
         h3.text-primary.mb-3
           i.bi.bi-person-plus-fill.me-2
           | Registrar nuevo cliente
-        form(action="/auth/register" method="post")
+
+        form(action="/usuarios/clientes/crear" method="post")
           input(type="hidden" name="rol" value="cliente")
           .row.g-3
             .col-md-4
