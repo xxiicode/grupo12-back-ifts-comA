@@ -5,6 +5,14 @@ block content
     .col-md-8
       .card.shadow-lg.p-4
         h2.text-center.mb-4 Registrar nuevo usuario
+
+        // === MENSAJES DE ERROR / ÉXITO ===
+        if error
+          .alert.alert-danger(role="alert") #{error}
+
+        if success
+          .alert.alert-success(role="alert") #{success}
+
         form(action="/auth/register" method="post")
           .row.g-3
             .col-md-4
