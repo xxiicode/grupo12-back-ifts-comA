@@ -50,6 +50,13 @@ html
                   i.bi.bi-calendar-check.me-1
                   | Eventos
 
+              // ===== Crear evento (solo admin/coordinador) =====
+              if ["admin","coordinador"].includes(user.rol)
+                li.nav-item
+                  a.nav-link(href="/eventos/crear")
+                    i.bi.bi-plus-circle-fill.me-1
+                    | Crear evento
+
               // ===== Registrar usuario (admin y coordinador) =====
               if user.rol == 'admin' || user.rol == 'coordinador'
                 li.nav-item

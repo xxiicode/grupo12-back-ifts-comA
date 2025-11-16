@@ -1,0 +1,69 @@
+extends layout
+
+block content
+  .container.mt-4
+    .card.shadow-sm
+      .card-body
+        h2.text-primary.mb-3 Presupuesto: #{evento.nombre}
+        p.text-muted Fecha: #{evento.fecha ? new Date(evento.fecha).toLocaleDateString("es-AR") : ''}
+
+        .row
+          .col-md-6
+            h5 Presupuesto estimado
+            p $#{evento.presupuesto || 0}
+          .col-md-6.text-end
+            h5 Total gastado
+            p $#{totalGastado}
+
+        hr
+
+        // Form para agregar gasto (solo admin/coordinador)
+        if user && ["admin","coordinador"].includes(user.rol)
+          form(action=`/eventos/${evento._id}/presupuesto/agregar` method="post")
+            .row.g-2.align-items-end
+              .col-md-7
+                label.form-label(for="descripcion") Descripción
+                input.form-control#descripcion(type="text" name="descripcion" required)
+              .col-md-3
+                label.form-label(for="monto") Monto
+                input.form-control#monto(type="number" step="0.01" name="monto" required)
+              .col-md-2
+                button.btn.btn-primary.w-100(type="submit") Agregar
+
+        hr
+
+        if gastos && gastos.length
+          table.table.table-sm
+            thead
+              tr
+                th Descripción
+                th Monto
+                th.text-end Acciones
+            tbody
+              each g, idx in gastos
+                tr
+                  td #{g.descripcion}
+                  td $#{g.monto}
+                  td.text-end
+                    if user && ["admin","coordinador"].includes(user.rol)
+                      button.btn.btn-sm.btn-outline-danger.delete-gasto(data-index=idx) Eliminar
+        else
+          .alert.alert-info No hay gastos registrados.
+
+        .mt-3
+          a.btn.btn-outline-secondary(href="/eventos") Volver a eventos
+
+  script.
+    document.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('.delete-gasto');
+      if (!btn) return;
+      const idx = btn.dataset.index;
+      const id = "#{evento._id}";
+      if (!confirm('¿Eliminar gasto?')) return;
+      const res = await fetch(`/eventos/${id}/presupuesto/${idx}`, { method: 'DELETE' });
+      if (res.ok) location.reload();
+      else {
+        const err = await res.json();
+        alert(err.error || 'Error al eliminar gasto');
+      }
+    });

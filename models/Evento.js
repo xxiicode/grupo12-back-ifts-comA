@@ -1,12 +1,26 @@
 import mongoose from "mongoose";
 
+const invitadoSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  estado: { type: String, enum: ["confirmado", "pendiente"], default: "pendiente" }
+}, { _id: false });
+
+const gastoSchema = new mongoose.Schema({
+  descripcion: { type: String, required: true },
+  monto: { type: Number, required: true, default: 0 }
+}, { _id: false });
+
 const eventoSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   fecha: { type: Date, required: true },
   descripcion: { type: String },
   lugar: { type: String },
-  presupuesto: { type: Number, default: 0 },
-  estado: { type: String, default: "Planificado" },
+  presupuesto: { type: Number, default: 0 }, // presupuesto estimado
+  estado: { 
+    type: String, 
+    enum: ["Planificado", "En curso", "Finalizado", "Cancelado"],
+    default: "Planificado"
+  },
 
   // Cliente (OBLIGATORIO)
   clienteId: {
@@ -29,7 +43,13 @@ const eventoSchema = new mongoose.Schema({
       ref: "Usuario",
     },
   ],
-});
+
+  // Invitados (no usuarios)
+  invitados: [invitadoSchema],
+
+  // Gastos / detalle de presupuesto
+  gastos: [gastoSchema],
+}, { timestamps: true });
 
 eventoSchema.pre("save", function (next) {
   if (!this.asistentesIds || this.asistentesIds.length < 1) {
@@ -41,7 +61,7 @@ eventoSchema.pre("save", function (next) {
   next();
 });
 
-// Cuando se haga toJSON, mapear id para las vistas (opcional, sigue estilo Usuario)
+// Mapear id al serializar
 eventoSchema.set("toJSON", {
   transform: (doc, ret) => {
     ret.id = ret._id.toString();

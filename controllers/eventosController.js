@@ -11,7 +11,9 @@ async function getAllEventos(req, res) {
     const eventos = await eventosService.obtenerTodos();
     res.json(eventos);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener eventos", detalle: error.message });
+    res
+      .status(500)
+      .json({ error: "Error al obtener eventos", detalle: error.message });
   }
 }
 
@@ -21,7 +23,9 @@ async function getEventoById(req, res) {
     if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
     res.json(evento);
   } catch (error) {
-    res.status(500).json({ error: "Error al buscar evento", detalle: error.message });
+    res
+      .status(500)
+      .json({ error: "Error al buscar evento", detalle: error.message });
   }
 }
 
@@ -30,29 +34,42 @@ async function createEvento(req, res) {
     const usuario = req.user || res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res.status(403).json({ error: "No tienes permiso para crear eventos" });
+      return res
+        .status(403)
+        .json({ error: "No tienes permiso para crear eventos" });
     }
 
     const {
-      nombre, fecha, lugar, presupuesto,
-      estado, clienteId, coordinadorId, asistentesIds
+      nombre,
+      fecha,
+      lugar,
+      presupuesto,
+      estado,
+      clienteId,
+      coordinadorId,
+      asistentesIds,
+      descripcion,
     } = req.body;
 
     if (!nombre || !fecha || !clienteId || !coordinadorId || !asistentesIds) {
       return res.status(400).json({
-        error: "Faltan datos obligatorios: nombre, fecha, clienteId, coordinadorId, asistentesIds"
+        error:
+          "Faltan datos obligatorios: nombre, fecha, clienteId, coordinadorId, asistentesIds",
       });
     }
 
-    // Convertir asistentesIds
     let asistentesArr = Array.isArray(asistentesIds)
       ? asistentesIds
-      : (typeof asistentesIds === "string" ? asistentesIds.split(",") : []);
+      : typeof asistentesIds === "string"
+      ? asistentesIds.split(",")
+      : [];
 
     asistentesArr = asistentesArr.filter(Boolean);
 
     if (asistentesArr.length < 1 || asistentesArr.length > 10) {
-      return res.status(400).json({ error: "Debe asignarse entre 1 y 10 asistentes." });
+      return res
+        .status(400)
+        .json({ error: "Debe asignarse entre 1 y 10 asistentes." });
     }
 
     // Validar roles
@@ -61,14 +78,21 @@ async function createEvento(req, res) {
       return res.status(400).json({ error: "El coordinadorId no es válido." });
     }
 
-    const asistentesDocs = await Usuario.find({ _id: { $in: asistentesArr }});
-    if (asistentesDocs.length !== asistentesArr.length || asistentesDocs.some(a => a.rol !== "asistente")) {
-      return res.status(400).json({ error: "Los asistentes seleccionados no son válidos." });
+    const asistentesDocs = await Usuario.find({ _id: { $in: asistentesArr } });
+    if (
+      asistentesDocs.length !== asistentesArr.length ||
+      asistentesDocs.some((a) => a.rol !== "asistente")
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Los asistentes seleccionados no son válidos." });
     }
 
     const cliente = await Usuario.findById(clienteId);
     if (!cliente || cliente.rol !== "cliente") {
-      return res.status(400).json({ error: "El cliente seleccionado no es válido." });
+      return res
+        .status(400)
+        .json({ error: "El cliente seleccionado no es válido." });
     }
 
     const nuevoEvento = await eventosService.crear({
@@ -77,15 +101,17 @@ async function createEvento(req, res) {
       lugar,
       presupuesto,
       estado,
+      descripcion,
       clienteId,
       coordinadorId,
-      asistentesIds: asistentesArr
+      asistentesIds: asistentesArr,
     });
 
     res.status(201).json(nuevoEvento);
-
   } catch (error) {
-    res.status(500).json({ error: "Error al crear evento", detalle: error.message });
+    res
+      .status(500)
+      .json({ error: "Error al crear evento", detalle: error.message });
   }
 }
 
@@ -94,15 +120,23 @@ async function updateEvento(req, res) {
     const usuario = req.user || res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res.status(403).json({ error: "No tienes permiso para editar eventos" });
+      return res
+        .status(403)
+        .json({ error: "No tienes permiso para editar eventos" });
     }
 
-    const actualizado = await eventosService.actualizar(req.params.id, req.body);
-    if (!actualizado) return res.status(404).json({ error: "Evento no encontrado" });
+    const actualizado = await eventosService.actualizar(
+      req.params.id,
+      req.body
+    );
+    if (!actualizado)
+      return res.status(404).json({ error: "Evento no encontrado" });
 
     res.json(actualizado);
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar evento", detalle: error.message });
+    res
+      .status(500)
+      .json({ error: "Error al actualizar evento", detalle: error.message });
   }
 }
 
@@ -111,16 +145,20 @@ async function removeEvento(req, res) {
     const usuario = req.user || res.locals.user;
 
     if (usuario.rol !== "admin") {
-      return res.status(403).json({ error: "No tienes permiso para eliminar eventos" });
+      return res
+        .status(403)
+        .json({ error: "No tienes permiso para eliminar eventos" });
     }
 
     const eliminado = await eventosService.eliminar(req.params.id);
-    if (!eliminado) return res.status(404).json({ error: "Evento no encontrado" });
+    if (!eliminado)
+      return res.status(404).json({ error: "Evento no encontrado" });
 
     res.json({ ok: true, mensaje: "Evento eliminado correctamente" });
-
   } catch (error) {
-    res.status(500).json({ error: "Error al eliminar evento", detalle: error.message });
+    res
+      .status(500)
+      .json({ error: "Error al eliminar evento", detalle: error.message });
   }
 }
 
@@ -131,7 +169,12 @@ async function getEventoWithCliente(req, res) {
 
     res.json(evento);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener evento completo", detalle: error.message });
+    res
+      .status(500)
+      .json({
+        error: "Error al obtener evento completo",
+        detalle: error.message,
+      });
   }
 }
 
@@ -155,66 +198,118 @@ async function listarEventos(req, res) {
 
     // Obtener eventos con populate
     let eventos = await Evento.find(filtros)
-      .populate("clienteId coordinadorId asistentesIds", "nombre username email rol")
+      .populate(
+        "clienteId coordinadorId asistentesIds",
+        "nombre username email rol"
+      )
+      .sort({ fecha: 1 })
       .lean();
 
     // Formatear fechas
-    eventos = eventos.map(e => ({
+    eventos = eventos.map((e) => ({
       ...e,
       id: e._id.toString(),
+
+      // Mostrar en pantalla (dd/mm/yyyy)
       fechaFormateada: e.fecha
         ? new Date(e.fecha).toLocaleDateString("es-AR")
         : "",
-      cliente: e.clienteId || null
+
+      // Para ordenar correctamente (ISO)
+      fechaISO: e.fecha ? new Date(e.fecha).toISOString() : "",
+
+      cliente: e.clienteId || null,
     }));
 
     // Listas para el form (solo admin y coordinador)
-    const clientes =
-      ["admin", "coordinador"].includes(usuario.rol)
-        ? await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 })
-        : [];
+    const clientes = ["admin", "coordinador"].includes(usuario.rol)
+      ? await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 })
+      : [];
 
-    const coordinadores =
-      ["admin", "coordinador"].includes(usuario.rol)
-        ? await Usuario.find({ rol: "coordinador" }).sort({ nombre: 1 })
-        : [];
+    const coordinadores = ["admin", "coordinador"].includes(usuario.rol)
+      ? await Usuario.find({ rol: "coordinador" }).sort({ nombre: 1 })
+      : [];
 
-    const asistentes =
-      ["admin", "coordinador"].includes(usuario.rol)
-        ? await Usuario.find({ rol: "asistente" }).sort({ nombre: 1 })
-        : [];
+    const asistentes = ["admin", "coordinador"].includes(usuario.rol)
+      ? await Usuario.find({ rol: "asistente" }).sort({ nombre: 1 })
+      : [];
 
     res.render("eventos", {
       eventos,
       clientes,
       coordinadores,
       asistentes,
-      user: usuario
+      user: usuario,
     });
-
   } catch (error) {
     console.error("Error al cargar eventos:", error);
     res.status(500).send("Error al cargar eventos");
   }
 }
 
+// Mostrar formulario para crear evento (vista separada)
+async function mostrarFormularioCreacion(req, res) {
+  try {
+    const usuario = res.locals.user;
+
+    const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+    const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({
+      nombre: 1,
+    });
+    const asistentes = await Usuario.find({ rol: "asistente" }).sort({
+      nombre: 1,
+    });
+
+    res.render("crearEvento", {
+      clientes,
+      coordinadores,
+      asistentes,
+      user: usuario,
+    });
+  } catch (error) {
+    console.error("Error al mostrar formulario de creación:", error);
+    res.status(500).send("Error al cargar formulario");
+  }
+}
+
+// Crear evento desde formulario web (ruta POST /eventos/crear)
 async function crearEventoWeb(req, res) {
   try {
     const usuario = res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res.status(403).render("error", { mensaje: "No tienes permiso para crear eventos" });
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para crear eventos" });
     }
 
-    const { nombre, fecha, lugar, presupuesto, estado, clienteId, coordinadorId, asistentesIds } = req.body;
+    const {
+      nombre,
+      fecha,
+      lugar,
+      presupuesto,
+      estado,
+      clienteId,
+      coordinadorId,
+      asistentesIds,
+      descripcion,
+    } = req.body;
 
     let asistentesArr = Array.isArray(asistentesIds)
       ? asistentesIds
-      : (typeof asistentesIds === "string" ? asistentesIds.split(",") : []);
+      : typeof asistentesIds === "string"
+      ? asistentesIds.split(",")
+      : [];
 
     asistentesArr = asistentesArr.filter(Boolean);
 
-    if (!nombre || !fecha || !clienteId || !coordinadorId || asistentesArr.length < 1) {
+    if (
+      !nombre ||
+      !fecha ||
+      !clienteId ||
+      !coordinadorId ||
+      asistentesArr.length < 1
+    ) {
       return res.redirect("/eventos");
     }
 
@@ -224,13 +319,13 @@ async function crearEventoWeb(req, res) {
       lugar,
       presupuesto,
       estado,
+      descripcion,
       clienteId,
       coordinadorId,
-      asistentesIds: asistentesArr
+      asistentesIds: asistentesArr,
     });
 
     res.redirect("/eventos");
-
   } catch (error) {
     console.error("Error al crear evento:", error);
     res.status(500).send("Error al crear evento");
@@ -242,21 +337,27 @@ async function mostrarFormularioEdicion(req, res) {
     const usuario = res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res.status(403).render("error", { mensaje: "No tienes permiso para editar eventos" });
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para editar eventos" });
     }
 
     const evento = await eventosService.buscarPorId(req.params.id);
     if (!evento) return res.status(404).send("Evento no encontrado");
 
     const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
-    const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({ nombre: 1 });
-    const asistentes = await Usuario.find({ rol: "asistente" }).sort({ nombre: 1 });
+    const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({
+      nombre: 1,
+    });
+    const asistentes = await Usuario.find({ rol: "asistente" }).sort({
+      nombre: 1,
+    });
 
-    evento.fechaFormateada =
-      evento.fecha ? new Date(evento.fecha).toISOString().split("T")[0] : "";
+    evento.fechaFormateada = evento.fecha
+      ? new Date(evento.fecha).toISOString().split("T")[0]
+      : "";
 
     res.render("editarEvento", { evento, clientes, coordinadores, asistentes });
-
   } catch (error) {
     console.error("Error al editar evento:", error);
     res.status(500).send("Error al cargar edición");
@@ -268,14 +369,28 @@ async function guardarEdicionWeb(req, res) {
     const usuario = res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res.status(403).render("error", { mensaje: "No tienes permiso para editar eventos" });
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para editar eventos" });
     }
 
-    const { nombre, fecha, lugar, presupuesto, estado, clienteId, coordinadorId, asistentesIds } = req.body;
+    const {
+      nombre,
+      fecha,
+      lugar,
+      presupuesto,
+      estado,
+      clienteId,
+      coordinadorId,
+      asistentesIds,
+      descripcion,
+    } = req.body;
 
     let asistentesArr = Array.isArray(asistentesIds)
       ? asistentesIds
-      : (typeof asistentesIds === "string" ? asistentesIds.split(",") : []);
+      : typeof asistentesIds === "string"
+      ? asistentesIds.split(",")
+      : [];
 
     asistentesArr = asistentesArr.filter(Boolean);
 
@@ -285,13 +400,13 @@ async function guardarEdicionWeb(req, res) {
       lugar,
       presupuesto,
       estado,
+      descripcion,
       clienteId,
       coordinadorId,
-      asistentesIds: asistentesArr
+      asistentesIds: asistentesArr,
     });
 
     res.redirect("/eventos");
-
   } catch (error) {
     console.error("Error al guardar edición:", error);
     res.status(500).send("Error al guardar cambios");
@@ -308,11 +423,15 @@ async function mostrarChatEvento(req, res) {
     const puedeAcceder =
       usuario.rol === "admin" ||
       usuario.rol === "coordinador" ||
-      (usuario.rol === "asistente" && evento.asistentesIds?.includes(usuario._id)) ||
-      (usuario.rol === "cliente" && evento.clienteId?.toString() === usuario._id.toString());
+      (usuario.rol === "asistente" &&
+        evento.asistentesIds?.some((a) => a._id?.toString() === usuario._id)) ||
+      (usuario.rol === "cliente" &&
+        evento.clienteId?.toString() === usuario._id.toString());
 
     if (!puedeAcceder) {
-      return res.status(403).render("error", { mensaje: "No tienes permiso para ver este chat" });
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para ver este chat" });
     }
 
     const fechaFormateada = evento.fecha
@@ -320,12 +439,243 @@ async function mostrarChatEvento(req, res) {
       : "";
 
     res.render("chatEvento", {
-      evento: { ...evento._doc, id: evento._id.toString(), fechaFormateada }
+      evento: { ...evento, id: evento._id.toString(), fechaFormateada },
     });
-
   } catch (error) {
     console.error("Error al cargar chat:", error);
     res.status(500).send("Error al cargar chat");
+  }
+}
+
+// ================================
+// INVITADOS (web)
+// ================================
+
+async function mostrarInvitados(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const evento = await eventosService.obtenerConCliente(req.params.id);
+    if (!evento) return res.status(404).send("Evento no encontrado");
+
+    // permisos: admin, coordinador, asistente del evento y el cliente pueden ver
+    const puedeVer =
+      usuario.rol === "admin" ||
+      usuario.rol === "coordinador" ||
+      (usuario.rol === "asistente" &&
+        evento.asistentesIds?.some((a) => a._id?.toString() === usuario._id)) ||
+      (usuario.rol === "cliente" &&
+        evento.clienteId?.toString() === usuario._id.toString());
+
+    if (!puedeVer)
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para ver invitados" });
+
+    res.render("invitados", {
+      evento,
+      user: usuario,
+      invitados: evento.invitados || [],
+    });
+  } catch (error) {
+    console.error("Error al mostrar invitados:", error);
+    res.status(500).send("Error al cargar invitados");
+  }
+}
+
+async function agregarInvitado(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const { id } = req.params;
+    const { nombre } = req.body;
+
+    if (!["admin", "coordinador"].includes(usuario.rol)) {
+      return res
+        .status(403)
+        .render("error", {
+          mensaje: "No tienes permiso para agregar invitados",
+        });
+    }
+
+    if (!nombre || !nombre.trim())
+      return res.redirect(`/eventos/${id}/invitados`);
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).send("Evento no encontrado");
+
+    evento.invitados = evento.invitados || [];
+    evento.invitados.push({ nombre: nombre.trim() });
+
+    await evento.save();
+    res.redirect(`/eventos/${id}/invitados`);
+  } catch (error) {
+    console.error("Error al agregar invitado:", error);
+    res.status(500).send("Error al agregar invitado");
+  }
+}
+
+async function toggleInvitadoEstado(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const { id, index } = req.params;
+    if (!["admin", "coordinador"].includes(usuario.rol)) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    const idx = parseInt(index, 10);
+    if (
+      isNaN(idx) ||
+      !evento.invitados ||
+      idx < 0 ||
+      idx >= evento.invitados.length
+    ) {
+      return res.status(400).json({ error: "Invitado no encontrado" });
+    }
+
+    const actual = evento.invitados[idx];
+    actual.estado = actual.estado === "confirmado" ? "pendiente" : "confirmado";
+
+    await evento.save();
+    res.json({ ok: true, invitado: actual });
+  } catch (error) {
+    console.error("Error al cambiar estado invitado:", error);
+    res.status(500).json({ error: "Error interno" });
+  }
+}
+
+async function eliminarInvitado(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const { id, index } = req.params;
+    if (!["admin", "coordinador"].includes(usuario.rol)) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    const idx = parseInt(index, 10);
+    if (
+      isNaN(idx) ||
+      !evento.invitados ||
+      idx < 0 ||
+      idx >= evento.invitados.length
+    ) {
+      return res.status(400).json({ error: "Invitado no encontrado" });
+    }
+
+    evento.invitados.splice(idx, 1);
+    await evento.save();
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Error al eliminar invitado:", error);
+    res.status(500).json({ error: "Error interno" });
+  }
+}
+
+// ================================
+// PRESUPUESTO / GASTOS (web)
+// ================================
+
+async function mostrarPresupuesto(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const evento = await eventosService.obtenerConCliente(req.params.id);
+    if (!evento) return res.status(404).send("Evento no encontrado");
+
+    // permisos: admin, coordinador, asistentes asignados y el cliente
+    const puedeVer =
+      usuario.rol === "admin" ||
+      usuario.rol === "coordinador" ||
+      (usuario.rol === "asistente" &&
+        evento.asistentesIds?.some((a) => a._id?.toString() === usuario._id)) ||
+      (usuario.rol === "cliente" &&
+        evento.clienteId?.toString() === usuario._id.toString());
+
+    if (!puedeVer)
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para ver presupuesto" });
+
+    const totalGastado = (evento.gastos || []).reduce(
+      (s, g) => s + (g.monto || 0),
+      0
+    );
+
+    res.render("presupuesto", {
+      evento,
+      gastos: evento.gastos || [],
+      totalGastado,
+      user: usuario,
+    });
+  } catch (error) {
+    console.error("Error al mostrar presupuesto:", error);
+    res.status(500).send("Error al cargar presupuesto");
+  }
+}
+
+async function agregarGasto(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const { id } = req.params;
+    const { descripcion, monto } = req.body;
+
+    if (!["admin", "coordinador"].includes(usuario.rol)) {
+      return res
+        .status(403)
+        .render("error", { mensaje: "No tienes permiso para agregar gastos" });
+    }
+
+    if (!descripcion || !descripcion.trim() || !monto) {
+      return res.redirect(`/eventos/${id}/presupuesto`);
+    }
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).send("Evento no encontrado");
+
+    evento.gastos = evento.gastos || [];
+    evento.gastos.push({
+      descripcion: descripcion.trim(),
+      monto: Number(monto),
+    });
+
+    await evento.save();
+    res.redirect(`/eventos/${id}/presupuesto`);
+  } catch (error) {
+    console.error("Error al agregar gasto:", error);
+    res.status(500).send("Error al agregar gasto");
+  }
+}
+
+async function eliminarGasto(req, res) {
+  try {
+    const usuario = res.locals.user;
+    const { id, index } = req.params;
+    if (!["admin", "coordinador"].includes(usuario.rol)) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    const idx = parseInt(index, 10);
+    if (
+      isNaN(idx) ||
+      !evento.gastos ||
+      idx < 0 ||
+      idx >= evento.gastos.length
+    ) {
+      return res.status(400).json({ error: "Gasto no encontrado" });
+    }
+
+    evento.gastos.splice(idx, 1);
+    await evento.save();
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Error al eliminar gasto:", error);
+    res.status(500).json({ error: "Error interno" });
   }
 }
 
@@ -340,8 +690,20 @@ export {
   removeEvento,
   getEventoWithCliente,
   listarEventos,
+  mostrarFormularioCreacion,
   crearEventoWeb,
   mostrarFormularioEdicion,
   guardarEdicionWeb,
   mostrarChatEvento,
+
+  // invitados
+  mostrarInvitados,
+  agregarInvitado,
+  toggleInvitadoEstado,
+  eliminarInvitado,
+
+  // presupuesto
+  mostrarPresupuesto,
+  agregarGasto,
+  eliminarGasto,
 };

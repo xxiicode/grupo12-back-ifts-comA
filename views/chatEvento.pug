@@ -2,6 +2,10 @@ extends layout
 
 block content
   .container.mt-4
+    a.btn.btn-outline-secondary.mb-3(href="/eventos")
+      i.bi.bi-arrow-left-circle.me-1
+      | Volver a eventos
+
     h2 Chat del evento: #{evento.nombre}
     p.text-muted Fecha: #{evento.fechaFormateada}
 
@@ -18,7 +22,6 @@ block content
           .input-group
             input#inputMensaje.form-control(type="text" placeholder="Escribí tu mensaje..." autocomplete="off")
             button.btn.btn-primary(type="submit") Enviar
-
   // incluye cliente, socket.io y chat script
   script(src="/socket.io/socket.io.js")
   script(src="/js/chat.js")

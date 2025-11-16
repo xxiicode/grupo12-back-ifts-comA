@@ -1,0 +1,145 @@
+extends layout
+
+block content
+  .container.mt-4
+    .card.shadow-sm
+      .card-body
+        h2.text-primary.mb-3 Invitados: #{evento.nombre}
+        p.text-muted Fecha: #{evento.fecha ? new Date(evento.fecha).toLocaleDateString("es-AR") : ''}
+
+        // Form para agregar invitado (solo admin/coordinador)
+        if user && ["admin","coordinador"].includes(user.rol)
+          form(action=`/eventos/${evento._id}/invitados/agregar` method="post")
+            .input-group.mb-3
+              input.form-control(type="text" name="nombre" placeholder="Nombre del invitado" required)
+              button.btn.btn-primary(type="submit")
+                i.bi.bi-person-plus-fill.me-1
+                | Agregar invitado
+
+        hr
+
+        if invitados && invitados.length
+          table.table.table-hover.align-middle
+            thead.table-primary
+              tr
+                th Nombre
+                th Estado
+                th.text-end Acciones
+            tbody
+              each inv, idx in invitados
+                tr(data-index=idx)
+                  td #{inv.nombre}
+                  td.estado
+                    if inv.estado === 'confirmado'
+                      span.badge.bg-success CONFIRMADO
+                    else
+                      span.badge.bg-secondary PENDIENTE
+                  td.text-end
+                    if user && ["admin","coordinador"].includes(user.rol)
+                      button.btn.btn-sm.btn-outline-warning.toggle-estado(data-index=idx)
+                        i.bi.bi-arrow-repeat.me-1
+                        | Cambiar
+                      button.btn.btn-sm.btn-outline-danger.ms-2.eliminar-invitado(data-index=idx)
+                        i.bi.bi-trash-fill
+                        | Eliminar
+        else
+          .alert.alert-info No hay invitados agregados.
+
+        .mt-3
+          a.btn.btn-outline-secondary(href="/eventos")
+            i.bi.bi-arrow-left-circle.me-1
+            | Volver a eventos
+
+
+  // Toast container
+  div#toastContainer(position="fixed" class="top-0 end-0 p-3" style="z-index: 99999;")
+
+  script.
+    // Función para mostrar toast
+    function mostrarToast(mensaje, tipo = "success") {
+      const contenedor = document.getElementById("toastContainer");
+
+      const toast = document.createElement("div");
+      toast.className = `toast align-items-center text-bg-${tipo} border-0 show mb-2`;
+      toast.role = "alert";
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            ${mensaje}
+          </div>
+        </div>
+      `;
+
+      contenedor.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 300);
+      }, 1500);
+    }
+
+    // -----------------------------
+    // CAMBIAR ESTADO AJAX
+    // -----------------------------
+    document.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest(".toggle-estado");
+      if (!btn) return;
+
+      const idx = btn.dataset.index;
+      const id = "#{evento._id}";
+
+      const res = await fetch(`/eventos/${id}/invitados/${idx}/toggle`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        // Actualizar visualmente sin recargar
+        const fila = document.querySelector(`tr[data-index="${idx}"]`);
+        const estadoCell = fila.querySelector(".estado span");
+
+        if (data.invitado.estado === "confirmado") {
+          estadoCell.className = "badge bg-success";
+          estadoCell.textContent = "CONFIRMADO";
+        } else {
+          estadoCell.className = "badge bg-secondary";
+          estadoCell.textContent = "PENDIENTE";
+        }
+
+        mostrarToast("Estado actualizado");
+      }
+    });
+
+    // -----------------------------
+    // ELIMINAR INVITADO AJAX
+    // -----------------------------
+    document.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest(".eliminar-invitado");
+      if (!btn) return;
+
+      if (!confirm("¿Eliminar invitado?")) return;
+
+      const idx = btn.dataset.index;
+      const id = "#{evento._id}";
+
+      const res = await fetch(`/eventos/${id}/invitados/${idx}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        // Eliminar fila sin recargar
+        document.querySelector(`tr[data-index="${idx}"]`).remove();
+
+        // Re-indexar filas
+        document.querySelectorAll("tbody tr").forEach((fila, i) => {
+          fila.dataset.index = i;
+          fila.querySelector(".toggle-estado")?.setAttribute("data-index", i);
+          fila.querySelector(".eliminar-invitado")?.setAttribute("data-index", i);
+        });
+
+        mostrarToast("Invitado eliminado", "danger");
+      }
+    });
