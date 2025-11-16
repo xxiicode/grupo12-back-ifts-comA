@@ -1,9 +1,7 @@
 import bcrypt from "bcrypt";
 import Usuario from "../models/Usuario.js";
 
-// ===========================
 // Listar clientes (usuarios con rol "cliente")
-// ===========================
 export async function listarClientes(req, res) {
   try {
     const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
@@ -14,9 +12,7 @@ export async function listarClientes(req, res) {
   }
 }
 
-// ===========================
 // Mostrar formulario de edición
-// ===========================
 export async function mostrarFormularioEdicion(req, res) {
   try {
     const cliente = await Usuario.findById(req.params.id);
@@ -30,9 +26,7 @@ export async function mostrarFormularioEdicion(req, res) {
   }
 }
 
-// ===========================
 // Guardar cambios
-// ===========================
 export async function guardarEdicion(req, res) {
   try {
     const { nombre, username, password, dni, email, telefono } = req.body;
@@ -59,9 +53,7 @@ export async function guardarEdicion(req, res) {
   }
 }
 
-// ===========================
 // Eliminar cliente
-// ===========================
 export async function eliminarCliente(req, res) {
   try {
     const eliminado = await Usuario.findOneAndDelete({
@@ -78,11 +70,7 @@ export async function eliminarCliente(req, res) {
   }
 }
 
-
-// ===========================
-// Crear cliente
-// ===========================
-
+// Registrar cliente (desde /usuarios/clientes/crear) - usado por coordinador y admin
 export async function registrarCliente(req, res) {
   try {
     const { username, password, nombre, dni, email, telefono } = req.body;
@@ -131,4 +119,3 @@ export async function registrarCliente(req, res) {
     });
   }
 }
-

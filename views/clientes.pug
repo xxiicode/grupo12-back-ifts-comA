@@ -3,14 +3,12 @@ extends layout
 block content
   .container.mt-4
 
-    // ===== MENSAJES DE ERROR / ÉXITO =====
     if error
       .alert.alert-danger(role="alert") #{error}
 
     if success
       .alert.alert-success(role="alert") #{success}
 
-    // ===== LISTADO DE CLIENTES =====
     .card.shadow-sm
       .card-body
         h2.mb-3.text-primary
@@ -36,49 +34,50 @@ block content
                   td #{c.email || '-'}
                   td #{c.telefono || '-'}
                   td.text-center
-                    a.btn.btn-sm.btn-outline-secondary.me-2(href=`/usuarios/editar/${c._id}`)
-                      i.bi.bi-pencil-fill
-                      |  Editar
-                    button.btn.btn-sm.btn-outline-danger.delete-btn(data-id=c._id data-nombre=c.username)
-                      i.bi.bi-trash-fill
-                      |  Eliminar
+                    if user && ["admin","coordinador"].includes(user.rol)
+                      a.btn.btn-sm.btn-outline-secondary.me-2(href=`/usuarios/editar/${c._id}`)
+                        i.bi.bi-pencil-fill
+                        |  Editar
+                      button.btn.btn-sm.btn-outline-danger.delete-btn(data-id=c._id data-nombre=c.username)
+                        i.bi.bi-trash-fill
+                        |  Eliminar
         else
           .alert.alert-info.mt-3 No hay clientes registrados.
 
-    // ===== FORMULARIO NUEVO CLIENTE =====
-    .card.mt-4.shadow-sm
-      .card-body
-        h3.text-primary.mb-3
-          i.bi.bi-person-plus-fill.me-2
-          | Registrar nuevo cliente
+    // ===== FORMULARIO NUEVO CLIENTE (solo si admin o coordinador) =====
+    if user && ["admin","coordinador"].includes(user.rol)
+      .card.mt-4.shadow-sm
+        .card-body
+          h3.text-primary.mb-3
+            i.bi.bi-person-plus-fill.me-2
+            | Registrar nuevo cliente
 
-        form(action="/usuarios/clientes/crear" method="post")
-          input(type="hidden" name="rol" value="cliente")
-          .row.g-3
-            .col-md-4
-              label.form-label(for="username") Usuario
-              input.form-control(type="text" name="username" required placeholder="ej: cliente123")
-            .col-md-4
-              label.form-label(for="password") Contraseña
-              input.form-control(type="password" name="password" required placeholder="********")
-            .col-md-4
-              label.form-label(for="nombre") Nombre completo
-              input.form-control(type="text" name="nombre" placeholder="Juan García")
-            .col-md-4
-              label.form-label(for="dni") DNI
-              input.form-control(type="number" name="dni" placeholder="12345678")
-            .col-md-4
-              label.form-label(for="email") Email
-              input.form-control(type="email" name="email" placeholder="cliente@correo.com")
-            .col-md-4
-              label.form-label(for="telefono") Teléfono
-              input.form-control(type="text" name="telefono" placeholder="11 7033 4450")
-          .mt-3
-            button.btn.btn-primary(type="submit")
-              i.bi.bi-person-check-fill.me-1
-              | Crear Cliente
+          form(action="/usuarios/clientes/crear" method="post")
+            input(type="hidden" name="rol" value="cliente")
+            .row.g-3
+              .col-md-4
+                label.form-label(for="username") Usuario
+                input.form-control(type="text" name="username" required placeholder="ej: cliente123")
+              .col-md-4
+                label.form-label(for="password") Contraseña
+                input.form-control(type="password" name="password" required placeholder="********")
+              .col-md-4
+                label.form-label(for="nombre") Nombre completo
+                input.form-control(type="text" name="nombre" placeholder="Juan García")
+              .col-md-4
+                label.form-label(for="dni") DNI
+                input.form-control(type="number" name="dni" placeholder="12345678")
+              .col-md-4
+                label.form-label(for="email") Email
+                input.form-control(type="email" name="email" placeholder="cliente@correo.com")
+              .col-md-4
+                label.form-label(for="telefono") Teléfono
+                input.form-control(type="text" name="telefono" placeholder="11 7033 4450")
+            .mt-3
+              button.btn.btn-primary(type="submit")
+                i.bi.bi-person-check-fill.me-1
+                | Crear Cliente
 
-  // ===== SCRIPT DE ELIMINACIÓN =====
   script.
     document.addEventListener('click', async (ev) => {
       const btn = ev.target.closest('.delete-btn');

@@ -6,7 +6,6 @@ block content
       .card.shadow-lg.p-4
         h2.text-center.mb-4 Registrar nuevo usuario
 
-        // === MENSAJES DE ERROR / ÉXITO ===
         if error
           .alert.alert-danger(role="alert") #{error}
 
@@ -18,9 +17,11 @@ block content
             .col-md-4
               label.form-label(for="username") Usuario
               input.form-control#username(type="text" name="username" required)
+
             .col-md-4
               label.form-label(for="password") Contraseña
               input.form-control#password(type="password" name="password" required)
+
             .col-md-4
               label.form-label(for="nombre") Nombre completo
               input.form-control#nombre(type="text" name="nombre")
@@ -41,10 +42,19 @@ block content
               label.form-label(for="rol") Rol
               select.form-select#rol(name="rol" required)
                 option(value="") Seleccionar rol
-                option(value="admin") Administrador
-                option(value="coordinador") Coordinador
-                option(value="asistente") Asistente
-                option(value="cliente") Cliente
+
+                //  roles
+                case user.rol
+                  when "admin"
+                    option(value="admin") Administrador
+                    option(value="coordinador") Coordinador
+                    option(value="asistente") Asistente
+                    option(value="cliente") Cliente
+                  when "coordinador"
+                    option(value="asistente") Asistente
+                    option(value="cliente") Cliente
+                  default
+                    // No agregar opciones extra
 
           .mt-3.d-flex.justify-content-between
             a.btn.btn-outline-secondary(href="/") Cancelar

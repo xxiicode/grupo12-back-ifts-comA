@@ -29,11 +29,14 @@ html
         a.navbar-brand(href="/")
           i.bi.bi-calendar-event.me-2
           | Axora Manager
+
         button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav")
           span.navbar-toggler-icon
+
         .collapse.navbar-collapse#navbarNav
           ul.navbar-nav.ms-auto.align-items-center
             if user
+
               // ===== Clientes =====
               if ["admin", "coordinador", "asistente"].includes(user.rol)
                 li.nav-item
@@ -41,14 +44,14 @@ html
                     i.bi.bi-people-fill.me-1
                     | Clientes
 
-              // ===== Eventos (visible para todos los roles logueados) =====
+              // ===== Eventos (todos los roles logueados) =====
               li.nav-item
                 a.nav-link(href="/eventos")
                   i.bi.bi-calendar-check.me-1
                   | Eventos
 
-              // ===== Registrar usuario (solo admin) =====
-              if user.rol == 'admin'
+              // ===== Registrar usuario (admin y coordinador) =====
+              if user.rol == 'admin' || user.rol == 'coordinador'
                 li.nav-item
                   a.nav-link(href="/auth/register")
                     i.bi.bi-person-plus-fill.me-1
@@ -65,6 +68,7 @@ html
                 a.nav-link.text-warning(href="/auth/logout")
                   i.bi.bi-box-arrow-right.me-1
                   | Cerrar sesión
+
             else
               li.nav-item
                 a.nav-link(href="/auth/login")

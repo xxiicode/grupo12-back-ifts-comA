@@ -3,31 +3,32 @@ import {
   listarClientes,
   mostrarFormularioEdicion,
   guardarEdicion,
-  eliminarCliente
+  eliminarCliente,
+  registrarCliente
 } from "../controllers/usuariosController.js";
 
 import { verificarToken } from "../middlewares/authMiddleware.js";
 import { autorizarRoles } from "../middlewares/rolMiddleware.js";
-import { registrarCliente } from "../controllers/usuariosController.js";
 
 const router = express.Router();
 
-// Solo admin y coordinador pueden gestionar clientes
-router.use(verificarToken, autorizarRoles("admin", "coordinador"));
+// Ejecutar verificarToken siempre (para tener req.user)
+router.use(verificarToken);
 
-// Listar todos los clientes (usuarios con rol cliente)
-router.get("/clientes", listarClientes);
+// LISTAR clientes => admin, coordinador, asistente (todos pueden ver lista, aunque asistentes tienen vista limitada)
+router.get("/clientes", (req, res, next) => {
+  if (["admin", "coordinador", "asistente"].includes(req.user.rol)) return next();
+  return res.status(403).send("Acceso denegado");
+}, listarClientes);
 
-// Formulario de edición
-router.get("/editar/:id", mostrarFormularioEdicion);
+// Registrar nuevo cliente (formulario en /usuarios/clientes) -> solo admin y coordinador
+router.post("/clientes/crear", autorizarRoles("admin", "coordinador"), registrarCliente);
 
-// Guardar cambios
-router.post("/editar/:id", guardarEdicion);
+// Formulario de edición -> admin y coordinador
+router.get("/editar/:id", autorizarRoles("admin", "coordinador"), mostrarFormularioEdicion);
+router.post("/editar/:id", autorizarRoles("admin", "coordinador"), guardarEdicion);
 
-// Eliminar cliente (AJAX)
-router.delete("/api/:id", eliminarCliente);
-
-// Registrar cliente
-router.post("/clientes/crear", registrarCliente);
+// Eliminar cliente (AJAX) -> solo admin y coordinador
+router.delete("/api/:id", autorizarRoles("admin", "coordinador"), eliminarCliente);
 
 export default router;

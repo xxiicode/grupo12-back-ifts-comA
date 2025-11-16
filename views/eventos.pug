@@ -2,6 +2,11 @@ extends layout
 
 block content
   .container.mt-4
+    if error
+      .alert.alert-danger #{error}
+    if success
+      .alert.alert-success #{success}
+
     .card.shadow-sm
       .card-body
         h2.text-primary.mb-3 Lista de Eventos
@@ -16,6 +21,8 @@ block content
                 th Presupuesto
                 th Estado
                 th Cliente
+                th Coordinador
+                th Asistentes
                 th.text-center Acciones
             tbody
               each e in eventos
@@ -25,25 +32,32 @@ block content
                   td #{e.lugar}
                   td $#{e.presupuesto}
                   td #{e.estado}
-                  td #{e.clienteId ? (e.clienteId.nombre || e.clienteId.username) : 'Sin asignar'}
+                  td #{e.cliente ? (e.cliente.nombre || e.cliente.username) : 'Sin asignar'}
+                  td #{e.coordinadorId ? (e.coordinadorId.nombre || e.coordinadorId.username) : '-'}
+                  td
+                    if e.asistentesIds && e.asistentesIds.length
+                      each a in e.asistentesIds
+                        span.badge.bg-secondary.me-1 #{a.username || a.nombre}
+                    else
+                      | -
                   td.text-center
-                    //  Solo roles autorizados pueden editar o eliminar
-                    if user && ["admin", "coordinador", "asistente"].includes(user.rol)
+                    if user && ["admin","coordinador"].includes(user.rol)
                       a.btn.btn-sm.btn-outline-secondary.me-2(href=`/eventos/editar/${e.id}`)
                         i.bi.bi-pencil-fill
                         |  Editar
+                    if user && user.rol === "admin"
                       button.btn.btn-sm.btn-outline-danger.me-2.delete-btn(data-id=e.id data-nombre=e.nombre)
                         i.bi.bi-trash-fill
                         |  Eliminar
-                    //  El chat está disponible para todos los roles (incluso cliente)
+                    // Chat: disponible si el usuario tiene acceso (será validado por el controlador)
                     a.btn.btn-sm.btn-outline-info(href=`/eventos/chat/${e.id}`)
                       i.bi.bi-chat-dots-fill
                       |  Chat
         else
           .alert.alert-info.mt-3 No hay eventos cargados.
 
-    //  Solo roles autorizados pueden ver el formulario de agregar eventos
-    if user && ["admin", "coordinador", "asistente"].includes(user.rol)
+    // CREAR EVENTO -> solo admin y coordinador
+    if user && ["admin","coordinador"].includes(user.rol)
       if clientes && clientes.length
         .card.mt-4.shadow-sm
           .card-body
@@ -74,6 +88,17 @@ block content
                     option(value="") Seleccionar cliente
                     each c in clientes
                       option(value=c._id) #{c.nombre || c.username} (#{c.username})
+                .col-md-4
+                  label.form-label(for="coordinadorId") Coordinador
+                  select.form-select(name="coordinadorId" required)
+                    option(value="") Seleccionar coordinador
+                    each coord in coordinadores
+                      option(value=coord._id) #{coord.nombre || coord.username} (#{coord.username})
+                .col-md-8
+                  label.form-label(for="asistentesIds") Asistentes (Ctrl/Cmd + click para seleccionar varios, max 10)
+                  select.form-select(name="asistentesIds" multiple required size=6)
+                    each a in asistentes
+                      option(value=a._id) #{a.nombre || a.username} (#{a.username})
               .mt-3
                 button.btn.btn-primary(type="submit") Agregar
     else

@@ -19,17 +19,13 @@ export async function login(req, res) {
       return res.status(401).render("login", { error: "Credenciales inválidas" });
     }
 
-    // Crear token JWT
     const token = jwt.sign(
       { id: usuario._id, username: usuario.username, rol: usuario.rol },
       SECRET,
       { expiresIn: "2h" }
     );
 
-    // Guardar token en cookie httpOnly
     res.cookie("token", token, { httpOnly: true, maxAge: 2 * 60 * 60 * 1000 });
-
-    // Redirigir al inicio
     res.redirect("/");
   } catch (error) {
     console.error("Error en login:", error);
@@ -37,7 +33,7 @@ export async function login(req, res) {
   }
 }
 
-//  LOGOUT
+// LOGOUT
 export async function logout(req, res) {
   try {
     res.clearCookie("token");
@@ -48,8 +44,7 @@ export async function logout(req, res) {
   }
 }
 
-//  REGISTRAR NUEVO USUARIO
-
+// REGISTRAR NUEVO USUARIO (usado por /auth/register, con permisos ya verificados en la ruta)
 export async function registrar(req, res) {
   try {
     const { username, password, nombre, rol, dni, email, telefono } = req.body;
@@ -77,10 +72,10 @@ export async function registrar(req, res) {
 
     await nuevoUsuario.save();
 
+    // Mostrar success en la misma vista register.pug
     res.render("register", { success: `Usuario "${username}" registrado correctamente.` });
   } catch (error) {
     console.error("Error en registrar:", error);
     res.status(500).render("register", { error: "Error interno del servidor." });
   }
 }
-

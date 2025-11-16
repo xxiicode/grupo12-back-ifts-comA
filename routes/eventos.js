@@ -1,43 +1,32 @@
 import express from 'express';
 import * as ctrl from '../controllers/eventosController.js';
+import { verificarToken } from "../middlewares/authMiddleware.js";
+import { autorizarRoles } from "../middlewares/rolMiddleware.js";
 
 const router = express.Router();
 
-// ---------- RUTAS API (Thunder Client / JSON) ----------
-
-// Obtener todos los eventos
+// RUTAS API
 router.get('/api', ctrl.getAllEventos);
-
-// Obtener un evento por ID
 router.get('/api/:id', ctrl.getEventoById);
+router.post('/api', verificarToken, autorizarRoles("admin", "coordinador"), ctrl.createEvento);
+router.put('/api/:id', verificarToken, autorizarRoles("admin", "coordinador"), ctrl.updateEvento);
+router.delete('/api/:id', verificarToken, autorizarRoles("admin"), ctrl.removeEvento); // Solo admin elimina vía API
 
-// Crear nuevo evento
-router.post('/api', ctrl.createEvento);
-
-// Actualizar evento
-router.put('/api/:id', ctrl.updateEvento);
-
-// Eliminar evento
-router.delete('/api/:id', ctrl.removeEvento);
-
-// Evento + cliente (API especial)
 router.get('/api/:id/full', ctrl.getEventoWithCliente);
 
-// ---------- RUTAS WEB (VISTAS PUG) ----------
+// RUTAS WEB (VISTAS PUG)
+router.get('/', verificarToken, ctrl.listarEventos);
 
-// Listar todos los eventos
-router.get('/', ctrl.listarEventos);
+// Crear nuevo evento desde formulario web (solo admin y coordinador)
+router.post('/', verificarToken, autorizarRoles("admin", "coordinador"), ctrl.crearEventoWeb);
 
-// Crear nuevo evento desde formulario web
-router.post('/', ctrl.crearEventoWeb);
+// Mostrar formulario de edición (solo admin y coordinador)
+router.get('/editar/:id', verificarToken, autorizarRoles("admin", "coordinador"), ctrl.mostrarFormularioEdicion);
 
-// Mostrar formulario de edición
-router.get('/editar/:id', ctrl.mostrarFormularioEdicion);
-
-// Guardar cambios desde formulario
-router.post('/editar/:id', ctrl.guardarEdicionWeb);
+// Guardar cambios desde formulario (solo admin y coordinador)
+router.post('/editar/:id', verificarToken, autorizarRoles("admin", "coordinador"), ctrl.guardarEdicionWeb);
 
 // Mostrar chat del evento
-router.get('/chat/:id', ctrl.mostrarChatEvento);
+router.get('/chat/:id', verificarToken, ctrl.mostrarChatEvento);
 
 export default router;
