@@ -8,7 +8,7 @@ const eventoSchema = new mongoose.Schema({
   presupuesto: { type: Number, default: 0 },
   estado: { type: String, default: "Planificado" },
 
-  // Cliente (OBLIGATORIO según tu última confirmación)
+  // Cliente (OBLIGATORIO)
   clienteId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Usuario",

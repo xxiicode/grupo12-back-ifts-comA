@@ -32,7 +32,7 @@ const PORT = process.env.PORT || 3000;
       const rawCookie = socket.handshake.headers.cookie || "";
       const cookies = cookie.parse(rawCookie || "");
       const token = cookies.token;
-      if (!token) return next(); // permitir anónimo si querés pruebas locales
+      if (!token) return next(); 
       const decoded = jwt.verify(token, SECRET);
       socket.user = decoded; // { id, username, rol }
       next();
