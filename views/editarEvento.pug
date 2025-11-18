@@ -8,32 +8,56 @@ block content
 
         form(action=`/eventos/editar/${evento._id}` method="post")
           .row.g-3
+
+            // ========================
+            // NOMBRE
+            // ========================
             .col-md-6
               label.form-label(for="nombre") Nombre
               input.form-control#nombre(type="text" name="nombre" value=evento.nombre required)
 
+            // ========================
+            // FECHA
+            // ========================
             .col-md-6
               label.form-label(for="fecha") Fecha
               input.form-control#fecha(type="date" name="fecha" value=evento.fechaFormateada required)
 
+            // ========================
+            // LUGAR
+            // ========================
             .col-md-6
               label.form-label(for="lugar") Lugar
               input.form-control#lugar(type="text" name="lugar" value=evento.lugar)
 
+            // ========================
+            // PRESUPUESTO
+            // ========================
             .col-md-6
               label.form-label(for="presupuesto") Presupuesto
               input.form-control#presupuesto(type="number" name="presupuesto" value=evento.presupuesto)
 
+            // ========================
+            // DESCRIPCIÓN
+            // ========================
+            .col-md-12
+              label.form-label(for="descripcion") Descripción
+              textarea.form-control#descripcion(name="descripcion" rows="3") #{evento.descripcion}
+
+            // ========================
+            // ESTADO 
+            // ========================
             .col-md-6
               label.form-label(for="estado") Estado
               select.form-select#estado(name="estado")
                 option(value="Planificado" selected=(evento.estado === "Planificado")) Planificado
                 option(value="En curso" selected=(evento.estado === "En curso")) En curso
                 option(value="Finalizado" selected=(evento.estado === "Finalizado")) Finalizado
+                option(value="Cancelado" selected=(evento.estado === "Cancelado")) Cancelado
 
-            // ========================================
-            // CLIENTE 
-            // ========================================
+            // ========================
+            // CLIENTE
+            // ========================
             .col-md-6
               label.form-label(for="clienteId") Cliente
               select.form-select#clienteId(name="clienteId" required)
@@ -44,9 +68,9 @@ block content
                     selected=(c._id.toString() === evento.clienteId._id.toString())
                   ) #{c.nombre || c.username}
 
-            // ========================================
-            // COORDINADOR 
-            // ========================================
+            // ========================
+            // COORDINADOR
+            // ========================
             .col-md-6
               label.form-label(for="coordinadorId") Coordinador
               select.form-select#coordinadorId(name="coordinadorId" required)
@@ -57,9 +81,9 @@ block content
                     selected=(coord._id.toString() === evento.coordinadorId._id.toString())
                   ) #{coord.nombre || coord.username}
 
-            // ========================================
-            // ASISTENTES -  SELECCIÓN MULTIPLE
-            // ========================================
+            // ========================
+            // ASISTENTES
+            // ========================
             .col-md-12
               label.form-label(for="asistentesIds") Asistentes (Ctrl/Cmd + click para seleccionar varios, max 10)
               select.form-select(name="asistentesIds" multiple required size=8)
@@ -71,6 +95,9 @@ block content
                     const isSelected = seleccionados.includes(a._id.toString());
                   option(value=a._id selected=isSelected) #{a.nombre || a.username}
 
+          // ========================
+          // BOTONES
+          // ========================
           .mt-4.d-flex.justify-content-end.gap-2
             a.btn.btn-outline-secondary(href="/eventos") Cancelar
             button.btn.btn-success(type="submit") Guardar cambios
