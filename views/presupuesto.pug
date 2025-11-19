@@ -38,14 +38,20 @@ block content
               tr
                 th Descripción
                 th Monto
-                th.text-end Acciones
+
+                // Solo admin y coordinador ven "Acciones"
+                if user && ["admin","coordinador"].includes(user.rol)
+                  th.text-end Acciones
+
             tbody
               each g, idx in gastos
                 tr
                   td #{g.descripcion}
                   td $#{g.monto}
-                  td.text-end
-                    if user && ["admin","coordinador"].includes(user.rol)
+
+                  // Acciones solo si el usuario tiene permisos
+                  if user && ["admin","coordinador"].includes(user.rol)
+                    td.text-end
                       button.btn.btn-sm.btn-outline-danger.delete-gasto(data-index=idx) Eliminar
         else
           .alert.alert-info No hay gastos registrados.
@@ -57,12 +63,17 @@ block content
     document.addEventListener('click', async (ev) => {
       const btn = ev.target.closest('.delete-gasto');
       if (!btn) return;
+
       const idx = btn.dataset.index;
       const id = "#{evento._id}";
+
       if (!confirm('¿Eliminar gasto?')) return;
+
       const res = await fetch(`/eventos/${id}/presupuesto/${idx}`, { method: 'DELETE' });
-      if (res.ok) location.reload();
-      else {
+
+      if (res.ok) {
+        location.reload();
+      } else {
         const err = await res.json();
         alert(err.error || 'Error al eliminar gasto');
       }

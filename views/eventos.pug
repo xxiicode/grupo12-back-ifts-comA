@@ -11,7 +11,8 @@ block content
         // ----------------------
         .row.mb-3
           .col-md-4
-            input#buscador.form-control(type="text" placeholder="Buscar por nombre, cliente, lugar...")
+            input#buscador.form-control(type="text" placeholder="Buscar por nombre, cliente, lugar.")
+
           .col-md-4
             select#filtroEstado.form-select
               option(value="todos") Filtrar por estado
@@ -19,13 +20,15 @@ block content
               option(value="En curso") En curso
               option(value="Finalizado") Finalizado
               option(value="Cancelado") Cancelado
-          .col-md-4.text-end
-            a.btn.btn-primary(href="/eventos/crear")
-              i.bi.bi-plus-circle-fill.me-1
-              | Crear evento
+
+          // SOLO admin o coordinador pueden ver "Crear evento"
+          if user && (user.rol === "admin" || user.rol === "coordinador")
+            .col-md-4.text-end
+              a.btn.btn-primary(href="/eventos/crear")
+                i.bi.bi-plus-circle-fill.me-1
+                | Crear evento
 
         if eventos && eventos.length
-          // Tabla
           table#tablaEventos.table.table-striped.table-hover.align-middle
             thead.table-primary
               tr
@@ -38,12 +41,13 @@ block content
                 th Coordinador
                 th.text-center(style="width:110px") Acciones
             tbody
-              each e, i in eventos
+              each e in eventos
                 tr(data-fecha=e.fechaISO)
                   td #{e.fechaFormateada}
                   td #{e.nombre}
                   td #{e.lugar}
                   td $#{e.presupuesto}
+
                   td
                     if e.estado === "Cancelado"
                       span.badge.bg-danger #{e.estado}
@@ -53,36 +57,106 @@ block content
                       span.badge.bg-success #{e.estado}
                     else
                       span.badge.bg-secondary #{e.estado}
+
                   td #{e.cliente ? (e.cliente.nombre || e.cliente.username) : 'Sin asignar'}
                   td #{e.coordinadorId ? (e.coordinadorId.nombre || e.coordinadorId.username) : '-'}
+
+                  // ======================================
+                  // ACCIONES POR ROL
+                  // ======================================
                   td.text-center
                     .btn-group
                       button.btn.btn-sm.btn-outline-primary.dropdown-toggle(type="button" data-bs-toggle="dropdown")
                         i.bi.bi-gear-fill
-                        |  Acciones
+                        | Acciones
+
                       ul.dropdown-menu.dropdown-menu-end
-                        li
-                          a.dropdown-item(href=`/eventos/editar/${e.id}`)
-                            i.bi.bi-pencil-fill.me-2
-                            | Editar
-                        li
-                          a.dropdown-item(href=`/eventos/${e.id}/invitados`)
-                            i.bi.bi-people-fill.me-2
-                            | Gestionar invitados
-                        li
-                          a.dropdown-item(href=`/eventos/${e.id}/presupuesto`)
-                            i.bi.bi-receipt.me-2
-                            | Gestionar presupuesto
-                        li
-                          a.dropdown-item(href=`/eventos/chat/${e.id}`)
-                            i.bi.bi-chat-left-text.me-2
-                            | Chat
-                        li
-                          hr.dropdown-divider
-                        li
-                          a.dropdown-item.text-danger.delete-btn(data-id=e.id data-nombre=e.nombre)
-                            i.bi.bi-trash-fill.me-2
-                            | Eliminar
+
+                        // ==========================================
+                        // EDITAR → Admin / Coordinador
+                        // DETALLES → Cliente
+                        // ==========================================
+                        if user && (user.rol === "admin" || user.rol === "coordinador")
+                          li
+                            a.dropdown-item(href=`/eventos/editar/${e.id}`)
+                              i.bi.bi-pencil-fill.me-2
+                              | Editar
+                        else if user && user.rol === "cliente"
+                          li
+                            a.dropdown-item(href=`/eventos/editar/${e.id}`)
+                              i.bi.bi-eye-fill.me-2
+                              | Detalles
+
+                        // ==========================================
+                        // INVITADOS
+                        // admin / coordinador / asistente asignado → Gestionar invitados
+                        // cliente → Invitados (solo ver)
+                        // ==========================================
+                        - let puedeInvitados = false;
+                        - if (user) {
+                        -   if (user.rol === "admin" || user.rol === "coordinador") puedeInvitados = true;
+                        -   if (user.rol === "asistente" && e.asistentesIds && e.asistentesIds.some(a => a._id == user._id)) puedeInvitados = true;
+                        -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeInvitados = true;
+                        - }
+
+                        if puedeInvitados
+                          li
+                            if user.rol === "cliente"
+                              a.dropdown-item(href=`/eventos/${e.id}/invitados`)
+                                i.bi.bi-people-fill.me-2
+                                | Invitados
+                            else
+                              a.dropdown-item(href=`/eventos/${e.id}/invitados`)
+                                i.bi.bi-people-fill.me-2
+                                | Gestionar invitados
+
+                        // ==========================================
+                        // PRESUPUESTO
+                        // admin/coordinador/asistente → Gestionar
+                        // cliente → Ver Presupuesto
+                        // ==========================================
+                        - let puedePresupuesto = false;
+                        - if (user) {
+                        -   if (["admin","coordinador","asistente"].includes(user.rol)) puedePresupuesto = true;
+                        -   else if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedePresupuesto = true;
+                        - }
+
+                        if puedePresupuesto
+                          li
+                            if user.rol === "cliente"
+                              a.dropdown-item(href=`/eventos/${e.id}/presupuesto`)
+                                i.bi.bi-receipt.me-2
+                                | Ver presupuesto
+                            else
+                              a.dropdown-item(href=`/eventos/${e.id}/presupuesto`)
+                                i.bi.bi-receipt.me-2
+                                | Gestionar presupuesto
+
+                        // ==========================================
+                        // CHAT (todos los involucrados)
+                        // ==========================================
+                        - let puedeChat = false;
+                        - if (user) {
+                        -   if (["admin","coordinador","asistente"].includes(user.rol)) puedeChat = true;
+                        -   else if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeChat = true;
+                        - }
+
+                        if puedeChat
+                          li
+                            a.dropdown-item(href=`/eventos/chat/${e.id}`)
+                              i.bi.bi-chat-left-text.me-2
+                              | Chat
+
+                        // ==========================================
+                        // ELIMINAR (SOLO ADMIN)
+                        // ==========================================
+                        if user && user.rol === "admin"
+                          li
+                            hr.dropdown-divider
+                          li
+                            a.dropdown-item.text-danger.delete-btn(data-id=e.id data-nombre=e.nombre)
+                              i.bi.bi-trash-fill.me-2
+                              | Eliminar
 
           // Paginación
           nav.mt-3
@@ -99,9 +173,7 @@ block content
     const filas = Array.from(tabla.querySelectorAll("tr"));
     let ordenAsc = true;
 
-    // ----------------------------
-    // ORDENAR POR FECHA
-    // ----------------------------
+    // Ordenar por fecha
     document.querySelector("[data-sort='fecha']").addEventListener("click", () => {
       ordenAsc = !ordenAsc;
 
@@ -113,16 +185,12 @@ block content
 
       tabla.innerHTML = "";
       ordenadas.forEach(f => tabla.appendChild(f));
-
       document.querySelector("[data-sort='fecha']").innerHTML =
         ordenAsc ? "Fecha ▴" : "Fecha ▾";
-      
+
       aplicarFiltros();
     });
 
-    // ----------------------------
-    // BUSCADOR
-    // ----------------------------
     document.querySelector("#buscador").addEventListener("input", aplicarFiltros);
     document.querySelector("#filtroEstado").addEventListener("change", aplicarFiltros);
 
@@ -133,19 +201,14 @@ block content
       filas.forEach(fila => {
         const contenido = fila.innerText.toLowerCase();
         const estadoFila = fila.children[4].innerText.trim();
-
         const coincideTexto = contenido.includes(texto);
         const coincideEstado = estado === "todos" || estadoFila === estado;
-
         fila.style.display = (coincideTexto && coincideEstado) ? "" : "none";
       });
 
       generarPaginacion();
     }
 
-    // ----------------------------
-    // PAGINACIÓN
-    // ----------------------------
     const filasPorPagina = 5;
     let paginaActual = 1;
 
@@ -153,15 +216,12 @@ block content
       const visibles = filas.filter(f => f.style.display !== "none");
       const totalPaginas = Math.ceil(visibles.length / filasPorPagina);
 
-      // Ocultar todas
       visibles.forEach(f => f.style.display = "none");
 
-      // Mostrar solo las de esta página
       const inicio = (paginaActual - 1) * filasPorPagina;
       const fin = inicio + filasPorPagina;
       visibles.slice(inicio, fin).forEach(f => f.style.display = "");
 
-      // Construir botones
       const pag = document.querySelector("#paginacion");
       pag.innerHTML = "";
 
@@ -177,11 +237,9 @@ block content
       }
     }
 
-    aplicarFiltros(); // inicial
+    aplicarFiltros();
 
-    // ----------------------------
-    // ELIMINAR EVENTO (AJAX)
-    // ----------------------------
+    // Eliminar evento (solo admin)
     document.addEventListener("click", async (ev) => {
       const btn = ev.target.closest(".delete-btn");
       if (!btn) return;

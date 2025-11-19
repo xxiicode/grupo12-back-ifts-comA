@@ -4,100 +4,136 @@ block content
   .container.mt-4
     .card.shadow-lg
       .card-body
-        h2.text-primary.mb-4 Editar evento
 
-        form(action=`/eventos/editar/${evento._id}` method="post")
+        // =============================
+        // TÍTULO
+        // =============================
+        if soloLectura
+          h2.text-primary.mb-4 Detalles del evento
+        if !soloLectura
+          h2.text-primary.mb-4 Editar evento
+
+        // ======================================================
+        // SOLO LECTURA (CLIENTE)
+        // ======================================================
+        if soloLectura
           .row.g-3
-
-            // ========================
-            // NOMBRE
-            // ========================
             .col-md-6
-              label.form-label(for="nombre") Nombre
-              input.form-control#nombre(type="text" name="nombre" value=evento.nombre required)
+              label.form-label Nombre
+              input.form-control(type="text" value=evento.nombre disabled)
 
-            // ========================
-            // FECHA
-            // ========================
             .col-md-6
-              label.form-label(for="fecha") Fecha
-              input.form-control#fecha(type="date" name="fecha" value=evento.fechaFormateada required)
+              label.form-label Fecha
+              input.form-control(type="date" value=evento.fechaFormateada disabled)
 
-            // ========================
-            // LUGAR
-            // ========================
             .col-md-6
-              label.form-label(for="lugar") Lugar
-              input.form-control#lugar(type="text" name="lugar" value=evento.lugar)
+              label.form-label Lugar
+              input.form-control(type="text" value=evento.lugar disabled)
 
-            // ========================
-            // PRESUPUESTO
-            // ========================
             .col-md-6
-              label.form-label(for="presupuesto") Presupuesto
-              input.form-control#presupuesto(type="number" name="presupuesto" value=evento.presupuesto)
+              label.form-label Presupuesto
+              input.form-control(type="number" value=evento.presupuesto disabled)
 
-            // ========================
-            // DESCRIPCIÓN
-            // ========================
             .col-md-12
-              label.form-label(for="descripcion") Descripción
-              textarea.form-control#descripcion(name="descripcion" rows="3") #{evento.descripcion}
+              label.form-label Descripción
+              textarea.form-control(rows="3" disabled)= evento.descripcion
 
-            // ========================
-            // ESTADO 
-            // ========================
             .col-md-6
-              label.form-label(for="estado") Estado
-              select.form-select#estado(name="estado")
-                option(value="Planificado" selected=(evento.estado === "Planificado")) Planificado
-                option(value="En curso" selected=(evento.estado === "En curso")) En curso
-                option(value="Finalizado" selected=(evento.estado === "Finalizado")) Finalizado
-                option(value="Cancelado" selected=(evento.estado === "Cancelado")) Cancelado
+              label.form-label Estado
+              input.form-control(type="text" value=evento.estado disabled)
 
-            // ========================
-            // CLIENTE
-            // ========================
             .col-md-6
-              label.form-label(for="clienteId") Cliente
-              select.form-select#clienteId(name="clienteId" required)
-                option(value="") -- Seleccionar cliente --
-                each c in clientes
-                  option(
-                    value=c._id
-                    selected=(c._id.toString() === evento.clienteId._id.toString())
-                  ) #{c.nombre || c.username}
+              label.form-label Cliente
+              -
+                const clienteTexto = evento.clienteId
+                  ? (evento.clienteId.nombre || evento.clienteId.username)
+                  : "";
+              input.form-control(type="text" value=clienteTexto disabled)
 
-            // ========================
-            // COORDINADOR
-            // ========================
             .col-md-6
-              label.form-label(for="coordinadorId") Coordinador
-              select.form-select#coordinadorId(name="coordinadorId" required)
-                option(value="") -- Seleccionar coordinador --
-                each coord in coordinadores
-                  option(
-                    value=coord._id
-                    selected=(coord._id.toString() === evento.coordinadorId._id.toString())
-                  ) #{coord.nombre || coord.username}
+              label.form-label Coordinador
+              -
+                const coordTexto = evento.coordinadorId
+                  ? (evento.coordinadorId.nombre || evento.coordinadorId.username)
+                  : "";
+              input.form-control(type="text" value=coordTexto disabled)
 
-            // ========================
-            // ASISTENTES
-            // ========================
             .col-md-12
-              label.form-label(for="asistentesIds") Asistentes (Ctrl/Cmd + click para seleccionar varios, max 10)
-              select.form-select(name="asistentesIds" multiple required size=8)
-                each a in asistentes
-                  -
-                    const seleccionados = evento.asistentesIds
-                      ? evento.asistentesIds.map(x => x._id.toString())
-                      : [];
-                    const isSelected = seleccionados.includes(a._id.toString());
-                  option(value=a._id selected=isSelected) #{a.nombre || a.username}
+              label.form-label Asistentes
+              ul.list-group
+                if evento.asistentesIds && evento.asistentesIds.length
+                  each a in evento.asistentesIds
+                    li.list-group-item #{a.nombre || a.username}
+                else
+                  li.list-group-item Sin asistentes asignados.
 
-          // ========================
-          // BOTONES
-          // ========================
-          .mt-4.d-flex.justify-content-end.gap-2
-            a.btn.btn-outline-secondary(href="/eventos") Cancelar
-            button.btn.btn-success(type="submit") Guardar cambios
+          .mt-4
+            a.btn.btn-outline-secondary(href="/eventos") Volver atrás
+
+        // ======================================================
+        // MODO EDICIÓN (ADMIN / COORDINADOR)
+        // ======================================================
+        if !soloLectura
+          form(action=`/eventos/editar/${evento._id}` method="post")
+            .row.g-3
+
+              .col-md-6
+                label.form-label(for="nombre") Nombre
+                input.form-control#nombre(type="text" name="nombre" value=evento.nombre required)
+
+              .col-md-6
+                label.form-label(for="fecha") Fecha
+                input.form-control#fecha(type="date" name="fecha" value=evento.fechaFormateada required)
+
+              .col-md-6
+                label.form-label(for="lugar") Lugar
+                input.form-control#lugar(type="text" name="lugar" value=evento.lugar)
+
+              .col-md-6
+                label.form-label(for="presupuesto") Presupuesto
+                input.form-control#presupuesto(type="number" name="presupuesto" value=evento.presupuesto)
+
+              .col-md-12
+                label.form-label Descripción
+                textarea.form-control#descripcion(name="descripcion" rows="3")= evento.descripcion
+
+              .col-md-6
+                label.form-label(for="estado") Estado
+                select.form-select#estado(name="estado")
+                  option(value="Planificado" selected=(evento.estado === "Planificado")) Planificado
+                  option(value="En curso" selected=(evento.estado === "En curso")) En curso
+                  option(value="Finalizado" selected=(evento.estado === "Finalizado")) Finalizado
+                  option(value="Cancelado" selected=(evento.estado === "Cancelado")) Cancelado
+
+              .col-md-6
+                label.form-label(for="clienteId") Cliente
+                select.form-select#clienteId(name="clienteId" required)
+                  option(value="") -- Seleccionar cliente --
+                  each c in clientes
+                    -
+                      const clienteIdStr = evento.clienteId && evento.clienteId._id ? evento.clienteId._id.toString() : (evento.clienteId ? evento.clienteId.toString() : null);
+                      const isSelCliente = clienteIdStr && c._id.toString() === clienteIdStr;
+                    option(value=c._id selected=isSelCliente) #{c.nombre || c.username}
+
+              .col-md-6
+                label.form-label(for="coordinadorId") Coordinador
+                select.form-select#coordinadorId(name="coordinadorId" required)
+                  option(value="") -- Seleccionar coordinador --
+                  each coord in coordinadores
+                    -
+                      const coordIdStr = evento.coordinadorId && evento.coordinadorId._id ? evento.coordinadorId._id.toString() : (evento.coordinadorId ? evento.coordinadorId.toString() : null);
+                      const isSelCoord = coordIdStr && coord._id.toString() === coordIdStr;
+                    option(value=coord._id selected=isSelCoord) #{coord.nombre || coord.username}
+
+              .col-md-12
+                label.form-label(for="asistentesIds") Asistentes
+                select.form-select(name="asistentesIds" multiple required size=8)
+                  each a in asistentes
+                    -
+                      const seleccionados = evento.asistentesIds ? evento.asistentesIds.map(x => x._id.toString()) : [];
+                      const isSelected = seleccionados.includes(a._id.toString());
+                    option(value=a._id selected=isSelected)= a.nombre || a.username
+
+            .mt-4.d-flex.justify-content-end.gap-2
+              a.btn.btn-outline-secondary(href="/eventos") Cancelar
+              button.btn.btn-success(type="submit") Guardar cambios

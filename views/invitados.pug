@@ -24,7 +24,11 @@ block content
               tr
                 th Nombre
                 th Estado
-                th.text-end Acciones
+
+                // SOLO admin y coordinador ven la columna Acciones
+                if user && ["admin","coordinador"].includes(user.rol)
+                  th.text-end Acciones
+
             tbody
               each inv, idx in invitados
                 tr(data-index=idx)
@@ -34,8 +38,10 @@ block content
                       span.badge.bg-success CONFIRMADO
                     else
                       span.badge.bg-secondary PENDIENTE
-                  td.text-end
-                    if user && ["admin","coordinador"].includes(user.rol)
+
+                  // ACCIONES — solo admin y coordinador
+                  if user && ["admin","coordinador"].includes(user.rol)
+                    td.text-end
                       button.btn.btn-sm.btn-outline-warning.toggle-estado(data-index=idx)
                         i.bi.bi-arrow-repeat.me-1
                         | Cambiar
@@ -49,7 +55,6 @@ block content
           a.btn.btn-outline-secondary(href="/eventos")
             i.bi.bi-arrow-left-circle.me-1
             | Volver a eventos
-
 
   // Toast container
   div#toastContainer(position="fixed" class="top-0 end-0 p-3" style="z-index: 99999;")
@@ -79,7 +84,7 @@ block content
     }
 
     // -----------------------------
-    // CAMBIAR ESTADO AJAX
+    // CAMBIAR ESTADO AJAX (solo si botones existen)
     // -----------------------------
     document.addEventListener("click", async (ev) => {
       const btn = ev.target.closest(".toggle-estado");
@@ -95,7 +100,6 @@ block content
       const data = await res.json();
 
       if (data.ok) {
-        // Actualizar visualmente sin recargar
         const fila = document.querySelector(`tr[data-index="${idx}"]`);
         const estadoCell = fila.querySelector(".estado span");
 
@@ -112,7 +116,7 @@ block content
     });
 
     // -----------------------------
-    // ELIMINAR INVITADO AJAX
+    // ELIMINAR INVITADO AJAX (solo si botones existen)
     // -----------------------------
     document.addEventListener("click", async (ev) => {
       const btn = ev.target.closest(".eliminar-invitado");
@@ -130,7 +134,6 @@ block content
       const data = await res.json();
 
       if (data.ok) {
-        // Eliminar fila sin recargar
         document.querySelector(`tr[data-index="${idx}"]`).remove();
 
         // Re-indexar filas

@@ -335,34 +335,68 @@ async function crearEventoWeb(req, res) {
 async function mostrarFormularioEdicion(req, res) {
   try {
     const usuario = res.locals.user;
-
-    if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res
-        .status(403)
-        .render("error", { mensaje: "No tienes permiso para editar eventos" });
+    //  si no hay usuario, bloqueo (evita errores)
+    if (!usuario) {
+      console.warn("mostrarFormularioEdicion: no hay usuario en res.locals.user");
+      return res.status(403).render("error", { mensaje: "Acceso denegado" });
     }
 
-    const evento = await eventosService.buscarPorId(req.params.id);
+    // Usamos obtenerConCliente para que venga igual que otras rutas (populate consistente)
+    const evento = await eventosService.obtenerConCliente(req.params.id);
     if (!evento) return res.status(404).send("Evento no encontrado");
 
+    // Normalizar ID real del cliente (admite populate y distintas formas)
+    function getClienteIdSimple(ev) {
+      return (
+        ev.clienteId?._id?.toString?.() ||
+        ev.clienteId?.toString?.() ||
+        ev.cliente?._id?.toString?.() ||
+        null
+      );
+    }
+    const clienteEventoId = getClienteIdSimple(evento);
+    const usuarioIdStr = usuario._id?.toString?.() || null;
+
+    // PERMISOS:
+    // admin y coordinador → editar
+    // cliente → solo ver su propio evento
+    const esSuEvento = usuario.rol === "cliente" && clienteEventoId === usuarioIdStr;
+
+    if (!["admin", "coordinador"].includes(usuario.rol) && !esSuEvento) {
+      // si el cliente está intentando y no coincide, dejar log 
+      if (usuario.rol === "cliente") {
+        console.warn(`Acceso denegado en mostrarFormularioEdicion: cliente ${usuarioIdStr} no coincide con evento cliente ${clienteEventoId}`);
+      }
+      return res.status(403).render("error", { mensaje: "Acceso denegado" });
+    }
+
+    // Si es cliente → modo solo lectura
+    const soloLectura = usuario.rol === "cliente";
+
     const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
-    const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({
-      nombre: 1,
-    });
-    const asistentes = await Usuario.find({ rol: "asistente" }).sort({
-      nombre: 1,
-    });
+    const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({ nombre: 1 });
+    const asistentes = await Usuario.find({ rol: "asistente" }).sort({ nombre: 1 });
 
     evento.fechaFormateada = evento.fecha
       ? new Date(evento.fecha).toISOString().split("T")[0]
       : "";
 
-    res.render("editarEvento", { evento, clientes, coordinadores, asistentes });
+    res.render("editarEvento", {
+      evento,
+      clientes,
+      coordinadores,
+      asistentes,
+      soloLectura,
+      user: usuario, // aseguro que la vista reciba user
+    });
   } catch (error) {
     console.error("Error al editar evento:", error);
     res.status(500).send("Error al cargar edición");
   }
 }
+
+
+
 
 async function guardarEdicionWeb(req, res) {
   try {
@@ -417,16 +451,17 @@ async function mostrarChatEvento(req, res) {
   try {
     const usuario = res.locals.user;
     const evento = await eventosService.obtenerConCliente(req.params.id);
-
     if (!evento) return res.status(404).send("Evento no encontrado");
+
+    const clienteEventoId = getClienteId(evento);
 
     const puedeAcceder =
       usuario.rol === "admin" ||
       usuario.rol === "coordinador" ||
       (usuario.rol === "asistente" &&
-        evento.asistentesIds?.some((a) => a._id?.toString() === usuario._id)) ||
+        evento.asistentesIds?.some(a => a._id?.toString() === usuario._id?.toString())) ||
       (usuario.rol === "cliente" &&
-        evento.clienteId?.toString() === usuario._id.toString());
+        clienteEventoId === usuario._id?.toString());
 
     if (!puedeAcceder) {
       return res
@@ -440,12 +475,15 @@ async function mostrarChatEvento(req, res) {
 
     res.render("chatEvento", {
       evento: { ...evento, id: evento._id.toString(), fechaFormateada },
+      user: usuario
     });
   } catch (error) {
     console.error("Error al cargar chat:", error);
     res.status(500).send("Error al cargar chat");
   }
 }
+
+
 
 // ================================
 // INVITADOS (web)
@@ -457,30 +495,36 @@ async function mostrarInvitados(req, res) {
     const evento = await eventosService.obtenerConCliente(req.params.id);
     if (!evento) return res.status(404).send("Evento no encontrado");
 
-    // permisos: admin, coordinador, asistente del evento y el cliente pueden ver
+    const clienteEventoId = getClienteId(evento);
+
     const puedeVer =
       usuario.rol === "admin" ||
       usuario.rol === "coordinador" ||
       (usuario.rol === "asistente" &&
-        evento.asistentesIds?.some((a) => a._id?.toString() === usuario._id)) ||
-      (usuario.rol === "cliente" &&
-        evento.clienteId?.toString() === usuario._id.toString());
+        evento.asistentesIds?.some(a => a._id?.toString() === usuario._id?.toString())) ||
+      (usuario.rol === "cliente" && clienteEventoId === usuario._id?.toString());
 
     if (!puedeVer)
       return res
         .status(403)
         .render("error", { mensaje: "No tienes permiso para ver invitados" });
 
+    // cliente → solo lectura
+    const soloLectura = usuario.rol === "cliente";
+
     res.render("invitados", {
       evento,
       user: usuario,
       invitados: evento.invitados || [],
+      soloLectura
     });
+
   } catch (error) {
     console.error("Error al mostrar invitados:", error);
     res.status(500).send("Error al cargar invitados");
   }
 }
+
 
 async function agregarInvitado(req, res) {
   try {
@@ -579,20 +623,30 @@ async function eliminarInvitado(req, res) {
 // PRESUPUESTO / GASTOS (web)
 // ================================
 
+function getClienteId(evento) {
+  return (
+    evento.clienteId?._id?.toString() ||
+    evento.clienteId?.toString() ||
+    evento.cliente?._id?.toString() ||
+    null
+  );
+}
+
 async function mostrarPresupuesto(req, res) {
   try {
     const usuario = res.locals.user;
     const evento = await eventosService.obtenerConCliente(req.params.id);
     if (!evento) return res.status(404).send("Evento no encontrado");
 
-    // permisos: admin, coordinador, asistentes asignados y el cliente
+    const clienteEventoId = getClienteId(evento);
+
     const puedeVer =
       usuario.rol === "admin" ||
       usuario.rol === "coordinador" ||
       (usuario.rol === "asistente" &&
-        evento.asistentesIds?.some((a) => a._id?.toString() === usuario._id)) ||
+        evento.asistentesIds?.some(a => a._id?.toString() === usuario._id?.toString())) ||
       (usuario.rol === "cliente" &&
-        evento.clienteId?.toString() === usuario._id.toString());
+        clienteEventoId === usuario._id?.toString());
 
     if (!puedeVer)
       return res
@@ -615,6 +669,8 @@ async function mostrarPresupuesto(req, res) {
     res.status(500).send("Error al cargar presupuesto");
   }
 }
+
+
 
 async function agregarGasto(req, res) {
   try {
