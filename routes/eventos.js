@@ -1,7 +1,7 @@
 import express from 'express';
 import * as ctrl from '../controllers/eventosController.js';
 import { verificarToken } from "../middlewares/authMiddleware.js";
-import { autorizarRoles } from "../middlewares/rolMiddleware.js";
+import { autorizarRoles, autorizarInvitados, autorizarPresupuesto } from "../middlewares/rolMiddleware.js";
 
 const router = express.Router();
 
@@ -37,6 +37,8 @@ router.get('/api/:id/full', ctrl.getEventoWithCliente);
 // -----------------------------------------
 // RUTAS WEB (PUG)
 // -----------------------------------------
+
+// LISTAR eventos (filtro por rol en controller)
 router.get('/', verificarToken, ctrl.listarEventos);
 
 // CREAR EVENTO (solo admin y coordinador)
@@ -58,9 +60,9 @@ router.post(
 // EDITAR / VER DETALLES
 // -----------------------------------------
 //
-// El controller se encarga de permitir:
+// mostrarFormularioEdicion permite:
 // - admin / coordinador → editar
-// - cliente → solo lectura (si es su evento)
+// - cliente y asistente → ver detalles en modo lectura
 // - otros → 403
 //
 router.get(
@@ -80,45 +82,49 @@ router.post(
 // -----------------------------------------
 // INVITADOS
 // -----------------------------------------
+
 router.get('/:id/invitados', verificarToken, ctrl.mostrarInvitados);
 
+// admin / coordinador / asistente asignado
 router.post(
   '/:id/invitados/agregar',
   verificarToken,
-  autorizarRoles("admin", "coordinador"),
+  autorizarInvitados(),
   ctrl.agregarInvitado
 );
 
 router.post(
   '/:id/invitados/:index/toggle',
   verificarToken,
-  autorizarRoles("admin", "coordinador"),
+  autorizarInvitados(),
   ctrl.toggleInvitadoEstado
 );
 
 router.delete(
   '/:id/invitados/:index',
   verificarToken,
-  autorizarRoles("admin", "coordinador"),
+  autorizarInvitados(),
   ctrl.eliminarInvitado
 );
 
 // -----------------------------------------
 // PRESUPUESTO
 // -----------------------------------------
+
 router.get('/:id/presupuesto', verificarToken, ctrl.mostrarPresupuesto);
 
+//  admin / coordinador / asistente asignado
 router.post(
   '/:id/presupuesto/agregar',
   verificarToken,
-  autorizarRoles("admin", "coordinador"),
+  autorizarPresupuesto(),
   ctrl.agregarGasto
 );
 
 router.delete(
   '/:id/presupuesto/:index',
   verificarToken,
-  autorizarRoles("admin", "coordinador"),
+  autorizarPresupuesto(),
   ctrl.eliminarGasto
 );
 

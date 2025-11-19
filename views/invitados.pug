@@ -7,8 +7,14 @@ block content
         h2.text-primary.mb-3 Invitados: #{evento.nombre}
         p.text-muted Fecha: #{evento.fecha ? new Date(evento.fecha).toLocaleDateString("es-AR") : ''}
 
-        // Form para agregar invitado (solo admin/coordinador)
-        if user && ["admin","coordinador"].includes(user.rol)
+        - let puedeEditar = false;
+        - if (user) {
+        -   if (["admin","coordinador"].includes(user.rol)) puedeEditar = true;
+        -   if (user.rol === "asistente" && evento.asistentesIds.some(a => a._id == user._id)) puedeEditar = true;
+        - }
+
+        // Form para agregar invitado
+        if puedeEditar
           form(action=`/eventos/${evento._id}/invitados/agregar` method="post")
             .input-group.mb-3
               input.form-control(type="text" name="nombre" placeholder="Nombre del invitado" required)
@@ -24,9 +30,7 @@ block content
               tr
                 th Nombre
                 th Estado
-
-                // SOLO admin y coordinador ven la columna Acciones
-                if user && ["admin","coordinador"].includes(user.rol)
+                if puedeEditar
                   th.text-end Acciones
 
             tbody
@@ -39,15 +43,14 @@ block content
                     else
                       span.badge.bg-secondary PENDIENTE
 
-                  // ACCIONES — solo admin y coordinador
-                  if user && ["admin","coordinador"].includes(user.rol)
+                  if puedeEditar
                     td.text-end
                       button.btn.btn-sm.btn-outline-warning.toggle-estado(data-index=idx)
                         i.bi.bi-arrow-repeat.me-1
                         | Cambiar
                       button.btn.btn-sm.btn-outline-danger.ms-2.eliminar-invitado(data-index=idx)
                         i.bi.bi-trash-fill
-                        | Eliminar
+
         else
           .alert.alert-info No hay invitados agregados.
 

@@ -7,6 +7,12 @@ block content
         h2.text-primary.mb-3 Presupuesto: #{evento.nombre}
         p.text-muted Fecha: #{evento.fecha ? new Date(evento.fecha).toLocaleDateString("es-AR") : ''}
 
+        - let puedeEditar = false;
+        - if (user) {
+        -   if (["admin","coordinador"].includes(user.rol)) puedeEditar = true;
+        -   if (user.rol === "asistente" && evento.asistentesIds.some(a => a._id == user._id)) puedeEditar = true;
+        - }
+
         .row
           .col-md-6
             h5 Presupuesto estimado
@@ -17,16 +23,15 @@ block content
 
         hr
 
-        // Form para agregar gasto (solo admin/coordinador)
-        if user && ["admin","coordinador"].includes(user.rol)
+        if puedeEditar
           form(action=`/eventos/${evento._id}/presupuesto/agregar` method="post")
             .row.g-2.align-items-end
               .col-md-7
-                label.form-label(for="descripcion") Descripción
-                input.form-control#descripcion(type="text" name="descripcion" required)
+                label.form-label Descripción
+                input.form-control(type="text" name="descripcion" required)
               .col-md-3
-                label.form-label(for="monto") Monto
-                input.form-control#monto(type="number" step="0.01" name="monto" required)
+                label.form-label Monto
+                input.form-control(type="number" step="0.01" name="monto" required)
               .col-md-2
                 button.btn.btn-primary.w-100(type="submit") Agregar
 
@@ -38,9 +43,7 @@ block content
               tr
                 th Descripción
                 th Monto
-
-                // Solo admin y coordinador ven "Acciones"
-                if user && ["admin","coordinador"].includes(user.rol)
+                if puedeEditar
                   th.text-end Acciones
 
             tbody
@@ -48,9 +51,7 @@ block content
                 tr
                   td #{g.descripcion}
                   td $#{g.monto}
-
-                  // Acciones solo si el usuario tiene permisos
-                  if user && ["admin","coordinador"].includes(user.rol)
+                  if puedeEditar
                     td.text-end
                       button.btn.btn-sm.btn-outline-danger.delete-gasto(data-index=idx) Eliminar
         else

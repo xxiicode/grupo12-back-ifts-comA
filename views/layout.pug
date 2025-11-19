@@ -38,7 +38,7 @@ html
             if user
 
               // ===== Clientes =====
-              if ["admin", "coordinador", "asistente"].includes(user.rol)
+              if ["admin", "coordinador"].includes(user.rol)
                 li.nav-item
                   a.nav-link(href="/usuarios/clientes")
                     i.bi.bi-people-fill.me-1

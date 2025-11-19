@@ -74,14 +74,14 @@ block content
 
                         // ==========================================
                         // EDITAR → Admin / Coordinador
-                        // DETALLES → Cliente
+                        // DETALLES → Cliente / Asistente
                         // ==========================================
                         if user && (user.rol === "admin" || user.rol === "coordinador")
                           li
                             a.dropdown-item(href=`/eventos/editar/${e.id}`)
                               i.bi.bi-pencil-fill.me-2
                               | Editar
-                        else if user && user.rol === "cliente"
+                        else if user && (user.rol === "cliente" || user.rol === "asistente")
                           li
                             a.dropdown-item(href=`/eventos/editar/${e.id}`)
                               i.bi.bi-eye-fill.me-2
@@ -94,8 +94,8 @@ block content
                         // ==========================================
                         - let puedeInvitados = false;
                         - if (user) {
-                        -   if (user.rol === "admin" || user.rol === "coordinador") puedeInvitados = true;
-                        -   if (user.rol === "asistente" && e.asistentesIds && e.asistentesIds.some(a => a._id == user._id)) puedeInvitados = true;
+                        -   if (["admin","coordinador"].includes(user.rol)) puedeInvitados = true;
+                        -   if (user.rol === "asistente" && e.asistentesIds.some(a => a._id == user._id)) puedeInvitados = true;
                         -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeInvitados = true;
                         - }
 
@@ -118,7 +118,7 @@ block content
                         - let puedePresupuesto = false;
                         - if (user) {
                         -   if (["admin","coordinador","asistente"].includes(user.rol)) puedePresupuesto = true;
-                        -   else if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedePresupuesto = true;
+                        -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedePresupuesto = true;
                         - }
 
                         if puedePresupuesto
@@ -138,7 +138,7 @@ block content
                         - let puedeChat = false;
                         - if (user) {
                         -   if (["admin","coordinador","asistente"].includes(user.rol)) puedeChat = true;
-                        -   else if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeChat = true;
+                        -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeChat = true;
                         - }
 
                         if puedeChat
@@ -158,13 +158,8 @@ block content
                               i.bi.bi-trash-fill.me-2
                               | Eliminar
 
-          // Paginación
-          nav.mt-3
-            ul#paginacion.pagination.justify-content-center
-
         else
           .alert.alert-info.mt-3 No hay eventos cargados.
-
   // -----------------------------------------
   // SCRIPTS: búsqueda, filtros, orden, paginación
   // -----------------------------------------

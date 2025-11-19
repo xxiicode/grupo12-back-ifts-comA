@@ -351,65 +351,74 @@ async function crearEventoWeb(req, res) {
 async function mostrarFormularioEdicion(req, res) {
   try {
     const usuario = res.locals.user;
-    //  si no hay usuario, bloqueo (evita errores)
     if (!usuario) {
-      console.warn("mostrarFormularioEdicion: no hay usuario en res.locals.user");
       return res.status(403).render("error", { mensaje: "Acceso denegado" });
     }
 
-    // Usamos obtenerConCliente para que venga igual que otras rutas (populate consistente)
     const evento = await eventosService.obtenerConCliente(req.params.id);
     if (!evento) return res.status(404).send("Evento no encontrado");
 
-    // Normalizar ID real del cliente (admite populate y distintas formas)
-    function getClienteIdSimple(ev) {
-      return (
-        ev.clienteId?._id?.toString?.() ||
-        ev.clienteId?.toString?.() ||
-        ev.cliente?._id?.toString?.() ||
-        null
-      );
+    const usuarioId = usuario._id.toString();
+    const clienteIdEvento =
+      evento.clienteId?._id?.toString() ||
+      evento.clienteId?.toString() ||
+      null;
+
+    const esAdminOCoor = ["admin", "coordinador"].includes(usuario.rol);
+    const esClienteDueño =
+      usuario.rol === "cliente" && clienteIdEvento === usuarioId;
+
+    const esAsistenteAsignado =
+      usuario.rol === "asistente" &&
+      evento.asistentesIds?.some(a => a._id.toString() === usuarioId);
+
+    // ADMIN / COORDINADOR → EDITAR
+    if (esAdminOCoor) {
+      const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
+      const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({ nombre: 1 });
+      const asistentes = await Usuario.find({ rol: "asistente" }).sort({ nombre: 1 });
+
+      evento.fechaFormateada = evento.fecha
+        ? new Date(evento.fecha).toISOString().split("T")[0]
+        : "";
+
+      return res.render("editarEvento", {
+        evento,
+        clientes,
+        coordinadores,
+        asistentes,
+        soloLectura: false,
+        user: usuario
+      });
     }
-    const clienteEventoId = getClienteIdSimple(evento);
-    const usuarioIdStr = usuario._id?.toString?.() || null;
 
-    // PERMISOS:
-    // admin y coordinador → editar
-    // cliente → solo ver su propio evento
-    const esSuEvento = usuario.rol === "cliente" && clienteEventoId === usuarioIdStr;
+    // CLIENTE / ASISTENTE → SOLO DETALLES
+    if (esClienteDueño || esAsistenteAsignado) {
+      evento.fechaFormateada = evento.fecha
+        ? new Date(evento.fecha).toISOString().split("T")[0]
+        : "";
 
-    if (!["admin", "coordinador"].includes(usuario.rol) && !esSuEvento) {
-      // si el cliente está intentando y no coincide, dejar log 
-      if (usuario.rol === "cliente") {
-        console.warn(`Acceso denegado en mostrarFormularioEdicion: cliente ${usuarioIdStr} no coincide con evento cliente ${clienteEventoId}`);
-      }
-      return res.status(403).render("error", { mensaje: "Acceso denegado" });
+      return res.render("editarEvento", {
+        evento,
+        clientes: [],
+        coordinadores: [],
+        asistentes: [],
+        soloLectura: true,
+        user: usuario
+      });
     }
 
-    // Si es cliente → modo solo lectura
-    const soloLectura = usuario.rol === "cliente";
+    // OTROS → PROHIBIDO
+    return res
+      .status(403)
+      .render("error", { mensaje: "No tienes permiso para ver este evento" });
 
-    const clientes = await Usuario.find({ rol: "cliente" }).sort({ nombre: 1 });
-    const coordinadores = await Usuario.find({ rol: "coordinador" }).sort({ nombre: 1 });
-    const asistentes = await Usuario.find({ rol: "asistente" }).sort({ nombre: 1 });
-
-    evento.fechaFormateada = evento.fecha
-      ? new Date(evento.fecha).toISOString().split("T")[0]
-      : "";
-
-    res.render("editarEvento", {
-      evento,
-      clientes,
-      coordinadores,
-      asistentes,
-      soloLectura,
-      user: usuario, // aseguro que la vista reciba user
-    });
   } catch (error) {
-    console.error("Error al editar evento:", error);
-    res.status(500).send("Error al cargar edición");
+    console.error("Error en mostrarFormularioEdicion:", error);
+    res.status(500).send("Error interno del servidor");
   }
 }
+
 
 
 
@@ -564,22 +573,22 @@ async function agregarInvitado(req, res) {
     const { id } = req.params;
     const { nombre } = req.body;
 
-    if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res
-        .status(403)
-        .render("error", {
-          mensaje: "No tienes permiso para agregar invitados",
-        });
+    const evento = await Evento.findById(id).populate("asistentesIds", "_id");
+    if (!evento) return res.status(404).send("Evento no encontrado");
+
+    const esAdminOCoor = ["admin","coordinador"].includes(usuario.rol);
+    const esAsistenteAsignado = usuario.rol === "asistente" &&
+      evento.asistentesIds.some(a => a._id.toString() === usuario._id.toString());
+
+    if (!esAdminOCoor && !esAsistenteAsignado) {
+      return res.status(403).render("error", { mensaje: "No tienes permiso para agregar invitados" });
     }
 
     if (!nombre || !nombre.trim())
       return res.redirect(`/eventos/${id}/invitados`);
 
-    const evento = await Evento.findById(id);
-    if (!evento) return res.status(404).send("Evento no encontrado");
-
     evento.invitados = evento.invitados || [];
-    evento.invitados.push({ nombre: nombre.trim() });
+    evento.invitados.push({ nombre: nombre.trim(), estado: "pendiente" });
 
     await evento.save();
     res.redirect(`/eventos/${id}/invitados`);
@@ -589,24 +598,25 @@ async function agregarInvitado(req, res) {
   }
 }
 
+
 async function toggleInvitadoEstado(req, res) {
   try {
     const usuario = res.locals.user;
     const { id, index } = req.params;
-    if (!["admin", "coordinador"].includes(usuario.rol)) {
+
+    const evento = await Evento.findById(id).populate("asistentesIds", "_id");
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    const esAdminOCoor = ["admin","coordinador"].includes(usuario.rol);
+    const esAsistenteAsignado = usuario.rol === "asistente" &&
+      evento.asistentesIds.some(a => a._id.toString() === usuario._id.toString());
+
+    if (!esAdminOCoor && !esAsistenteAsignado) {
       return res.status(403).json({ error: "No autorizado" });
     }
 
-    const evento = await Evento.findById(id);
-    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
-
     const idx = parseInt(index, 10);
-    if (
-      isNaN(idx) ||
-      !evento.invitados ||
-      idx < 0 ||
-      idx >= evento.invitados.length
-    ) {
+    if (isNaN(idx) || idx < 0 || !evento.invitados || idx >= evento.invitados.length) {
       return res.status(400).json({ error: "Invitado no encontrado" });
     }
 
@@ -615,41 +625,46 @@ async function toggleInvitadoEstado(req, res) {
 
     await evento.save();
     res.json({ ok: true, invitado: actual });
+
   } catch (error) {
-    console.error("Error al cambiar estado invitado:", error);
+    console.error("Error al cambiar estado:", error);
     res.status(500).json({ error: "Error interno" });
   }
 }
+
 
 async function eliminarInvitado(req, res) {
   try {
     const usuario = res.locals.user;
     const { id, index } = req.params;
-    if (!["admin", "coordinador"].includes(usuario.rol)) {
+
+    const evento = await Evento.findById(id).populate("asistentesIds", "_id");
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    const esAdminOCoor = ["admin","coordinador"].includes(usuario.rol);
+    const esAsistenteAsignado = usuario.rol === "asistente" &&
+      evento.asistentesIds.some(a => a._id.toString() === usuario._id.toString());
+
+    if (!esAdminOCoor && !esAsistenteAsignado) {
       return res.status(403).json({ error: "No autorizado" });
     }
 
-    const evento = await Evento.findById(id);
-    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
-
     const idx = parseInt(index, 10);
-    if (
-      isNaN(idx) ||
-      !evento.invitados ||
-      idx < 0 ||
-      idx >= evento.invitados.length
-    ) {
+    if (isNaN(idx) || !evento.invitados || idx < 0 || idx >= evento.invitados.length) {
       return res.status(400).json({ error: "Invitado no encontrado" });
     }
 
     evento.invitados.splice(idx, 1);
     await evento.save();
+
     res.json({ ok: true });
+
   } catch (error) {
     console.error("Error al eliminar invitado:", error);
     res.status(500).json({ error: "Error interno" });
   }
 }
+
 
 // ================================
 // PRESUPUESTO / GASTOS (web)
@@ -710,18 +725,20 @@ async function agregarGasto(req, res) {
     const { id } = req.params;
     const { descripcion, monto } = req.body;
 
-    if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res
-        .status(403)
-        .render("error", { mensaje: "No tienes permiso para agregar gastos" });
+    const evento = await Evento.findById(id).populate("asistentesIds", "_id");
+    if (!evento) return res.status(404).send("Evento no encontrado");
+
+    const esAdminOCoor = ["admin","coordinador"].includes(usuario.rol);
+    const esAsistenteAsignado = usuario.rol === "asistente" &&
+      evento.asistentesIds.some(a => a._id.toString() === usuario._id.toString());
+
+    if (!esAdminOCoor && !esAsistenteAsignado) {
+      return res.status(403).render("error", { mensaje: "No tienes permiso para agregar gastos" });
     }
 
     if (!descripcion || !descripcion.trim() || !monto) {
       return res.redirect(`/eventos/${id}/presupuesto`);
     }
-
-    const evento = await Evento.findById(id);
-    if (!evento) return res.status(404).send("Evento no encontrado");
 
     evento.gastos = evento.gastos || [];
     evento.gastos.push({
@@ -731,41 +748,46 @@ async function agregarGasto(req, res) {
 
     await evento.save();
     res.redirect(`/eventos/${id}/presupuesto`);
+
   } catch (error) {
     console.error("Error al agregar gasto:", error);
     res.status(500).send("Error al agregar gasto");
   }
 }
 
+
 async function eliminarGasto(req, res) {
   try {
     const usuario = res.locals.user;
     const { id, index } = req.params;
-    if (!["admin", "coordinador"].includes(usuario.rol)) {
+
+    const evento = await Evento.findById(id).populate("asistentesIds", "_id");
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    const esAdminOCoor = ["admin","coordinador"].includes(usuario.rol);
+    const esAsistenteAsignado = usuario.rol === "asistente" &&
+      evento.asistentesIds.some(a => a._id.toString() === usuario._id.toString());
+
+    if (!esAdminOCoor && !esAsistenteAsignado) {
       return res.status(403).json({ error: "No autorizado" });
     }
 
-    const evento = await Evento.findById(id);
-    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
-
     const idx = parseInt(index, 10);
-    if (
-      isNaN(idx) ||
-      !evento.gastos ||
-      idx < 0 ||
-      idx >= evento.gastos.length
-    ) {
+    if (isNaN(idx) || !evento.gastos || idx < 0 || idx >= evento.gastos.length) {
       return res.status(400).json({ error: "Gasto no encontrado" });
     }
 
     evento.gastos.splice(idx, 1);
     await evento.save();
+
     res.json({ ok: true });
+
   } catch (error) {
     console.error("Error al eliminar gasto:", error);
     res.status(500).json({ error: "Error interno" });
   }
 }
+
 
 // ==========================================
 // ============== EXPORTS FINAL =============
