@@ -33,6 +33,46 @@ export async function login(req, res) {
   }
 }
 
+// ==========================================
+// LOGIN PARA API (Thunder Client)
+// ==========================================
+export async function loginAPI(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    const usuario = await Usuario.findOne({ username });
+    if (!usuario) {
+      return res.status(401).json({ error: "Usuario no encontrado" });
+    }
+
+    const valido = await bcrypt.compare(password, usuario.passwordHash);
+    if (!valido) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+
+    const token = jwt.sign(
+      { id: usuario._id, username: usuario.username, rol: usuario.rol },
+      SECRET,
+      { expiresIn: "2h" }
+    );
+
+    //  DEVOLVER TOKEN EN JSON 
+    return res.json({
+      ok: true,
+      token,
+      usuario: {
+        id: usuario._id,
+        username: usuario.username,
+        rol: usuario.rol
+      }
+    });
+  } catch (error) {
+    console.error("Error en login API:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+
 // LOGOUT
 export async function logout(req, res) {
   try {
