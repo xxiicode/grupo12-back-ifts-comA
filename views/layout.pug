@@ -3,7 +3,7 @@ html
   head
     meta(charset="utf-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Eventify Manager
+    title Axora - Manager
 
     // ===== Bootstrap CSS =====
     link(
@@ -37,7 +37,14 @@ html
           ul.navbar-nav.ms-auto.align-items-center
             if user
 
-              // ===== Clientes =====
+              // ===== Usuarios (solo admin) =====
+              if user.rol === "admin"
+                li.nav-item
+                  a.nav-link(href="/usuarios/admin")
+                    i.bi.bi-people.me-1
+                    | Usuarios
+
+              // ===== Clientes (admin y coordinador) =====
               if ["admin", "coordinador"].includes(user.rol)
                 li.nav-item
                   a.nav-link(href="/usuarios/clientes")

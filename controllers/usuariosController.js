@@ -119,3 +119,59 @@ export async function registrarCliente(req, res) {
     });
   }
 }
+
+
+// ===============
+// Vista principal
+// ===============
+export async function listarUsuarios(req, res) {
+  const usuarios = await Usuario.find().lean();
+  res.render("usuarios", { usuarios, user: req.user });
+}
+
+// ===============
+// Vista editar
+// ===============
+export async function vistaEditarUsuario(req, res) {
+  try {
+    const usuario = await Usuario.findById(req.params.id).lean();
+    if (!usuario) return res.status(404).send("Usuario no encontrado");
+
+    res.render("editarUsuario", { usuario, user: req.user });
+  } catch (error) {
+    res.status(500).send("Error al cargar el usuario");
+  }
+}
+
+// ===============
+// Guardar edición
+// ===============
+export async function editarUsuario(req, res) {
+  try {
+    const { nombre, email, telefono, rol, dni } = req.body;
+
+    await Usuario.findByIdAndUpdate(req.params.id, {
+      nombre,
+      email,
+      telefono,
+      rol,
+      dni
+    });
+
+    res.redirect("/usuarios/admin");
+  } catch (error) {
+    res.status(500).send("No se pudo actualizar el usuario");
+  }
+}
+
+// ===============
+// Eliminar usuario
+// ===============
+export async function eliminarUsuario(req, res) {
+  try {
+    await Usuario.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: "No se pudo eliminar" });
+  }
+}
