@@ -5,12 +5,9 @@ block content
     .card.shadow-lg
       .card-body
 
-        // =============================
-        // TÍTULO
-        // =============================
         if soloLectura
           h2.text-primary.mb-4 Detalles del evento
-        if !soloLectura
+        else
           h2.text-primary.mb-4 Editar evento
 
         // ======================================================
@@ -115,15 +112,27 @@ block content
                       const isSelCliente = clienteIdStr && c._id.toString() === clienteIdStr;
                     option(value=c._id selected=isSelCliente) #{c.nombre || c.username}
 
-              .col-md-6
-                label.form-label(for="coordinadorId") Coordinador
-                select.form-select#coordinadorId(name="coordinadorId" required)
-                  option(value="") -- Seleccionar coordinador --
-                  each coord in coordinadores
-                    -
-                      const coordIdStr = evento.coordinadorId && evento.coordinadorId._id ? evento.coordinadorId._id.toString() : (evento.coordinadorId ? evento.coordinadorId.toString() : null);
-                      const isSelCoord = coordIdStr && coord._id.toString() === coordIdStr;
-                    option(value=coord._id selected=isSelCoord) #{coord.nombre || coord.username}
+              // ===============================
+              // COORDINADOR
+              // ===============================
+
+              if user.rol === "admin"
+                .col-md-6
+                  label.form-label(for="coordinadorId") Coordinador
+                  select.form-select#coordinadorId(name="coordinadorId" required)
+                    option(value="") -- Seleccionar coordinador --
+                    each coord in coordinadores
+                      -
+                        const coordIdStr = evento.coordinadorId && evento.coordinadorId._id ? evento.coordinadorId._id.toString() : (evento.coordinadorId ? evento.coordinadorId.toString() : null);
+                        const isSelCoord = coordIdStr && coord._id.toString() === coordIdStr;
+                      option(value=coord._id selected=isSelCoord)= `${coord.nombre || coord.username}`
+
+              else if user.rol === "coordinador"
+                // El coordinador NO puede cambiar el coordinador asignado
+                input(type="hidden" name="coordinadorId" value=user._id)
+                .col-md-6
+                  label.form-label Coordinador
+                  input.form-control(type="text" disabled value=`${user.nombre || user.username}`)
 
               .col-md-12
                 label.form-label(for="asistentesIds") Asistentes

@@ -34,12 +34,10 @@ async function createEvento(req, res) {
     const usuario = req.user || res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res
-        .status(403)
-        .json({ error: "No tienes permiso para crear eventos" });
+      return res.status(403).json({ error: "No tienes permiso para crear eventos" });
     }
 
-    const {
+    let {
       nombre,
       fecha,
       lugar,
@@ -51,10 +49,15 @@ async function createEvento(req, res) {
       descripcion,
     } = req.body;
 
-    if (!nombre || !fecha || !clienteId || !coordinadorId || !asistentesIds) {
+    //  El COORDINADOR no PUEDE CAMBIAR coordinadorId
+
+    if (usuario.rol === "coordinador") {
+      coordinadorId = usuario._id;
+    }
+
+    if (!nombre || !fecha || !clienteId || !coordinadorId) {
       return res.status(400).json({
-        error:
-          "Faltan datos obligatorios: nombre, fecha, clienteId, coordinadorId, asistentesIds",
+        error: "Faltan datos obligatorios: nombre, fecha, clienteId, coordinadorId",
       });
     }
 
@@ -67,9 +70,7 @@ async function createEvento(req, res) {
     asistentesArr = asistentesArr.filter(Boolean);
 
     if (asistentesArr.length < 1 || asistentesArr.length > 10) {
-      return res
-        .status(400)
-        .json({ error: "Debe asignarse entre 1 y 10 asistentes." });
+      return res.status(400).json({ error: "Debe asignarse entre 1 y 10 asistentes." });
     }
 
     // Validar roles
@@ -94,7 +95,6 @@ async function createEvento(req, res) {
         .status(400)
         .json({ error: "El cliente seleccionado no es válido." });
     }
-
     const nuevoEvento = await eventosService.crear({
       nombre,
       fecha,
@@ -103,42 +103,49 @@ async function createEvento(req, res) {
       estado,
       descripcion,
       clienteId,
-      coordinadorId,
+      coordinadorId,   
       asistentesIds: asistentesArr,
     });
 
     res.status(201).json(nuevoEvento);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al crear evento", detalle: error.message });
+    res.status(500).json({ error: "Error al crear evento", detalle: error.message });
   }
 }
+
 
 async function updateEvento(req, res) {
   try {
     const usuario = req.user || res.locals.user;
 
     if (!["admin", "coordinador"].includes(usuario.rol)) {
-      return res
-        .status(403)
-        .json({ error: "No tienes permiso para editar eventos" });
+      return res.status(403).json({ error: "No tienes permiso para editar eventos" });
+    }
+
+    let datosActualizados = { ...req.body };
+
+    // COORDINADOR NO PUEDE CAMBIAR coordinadorId
+    if (usuario.rol === "coordinador") {
+      datosActualizados.coordinadorId = usuario._id;
     }
 
     const actualizado = await eventosService.actualizar(
       req.params.id,
-      req.body
+      datosActualizados
     );
+
     if (!actualizado)
       return res.status(404).json({ error: "Evento no encontrado" });
 
     res.json(actualizado);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al actualizar evento", detalle: error.message });
+    res.status(500).json({
+      error: "Error al actualizar evento",
+      detalle: error.message,
+    });
   }
 }
+
 
 async function removeEvento(req, res) {
   try {
@@ -272,6 +279,7 @@ async function mostrarFormularioCreacion(req, res) {
   }
 }
 
+
 // Crear evento desde formulario web (ruta POST /eventos/crear)
 async function crearEventoWeb(req, res) {
   try {
@@ -283,7 +291,7 @@ async function crearEventoWeb(req, res) {
         .render("error", { mensaje: "No tienes permiso para crear eventos" });
     }
 
-    const {
+    let {
       nombre,
       fecha,
       lugar,
@@ -295,14 +303,21 @@ async function crearEventoWeb(req, res) {
       descripcion,
     } = req.body;
 
+    // SI ES COORDINADOR → NO PUEDE CAMBIAR coordinadorId
+     if (usuario.rol === "coordinador") {
+      coordinadorId = usuario._id;
+    }
+
+    // Normalizar asistentes (acepta string con comas o array)
     let asistentesArr = Array.isArray(asistentesIds)
       ? asistentesIds
       : typeof asistentesIds === "string"
       ? asistentesIds.split(",")
       : [];
 
-    asistentesArr = asistentesArr.filter(Boolean);
+    asistentesArr = asistentesArr.map(a => (typeof a === "string" ? a.trim() : a)).filter(Boolean);
 
+    // VALIDACIÓN OBLIGATORIA (no permitir crear sin campos esenciales)
     if (
       !nombre ||
       !fecha ||
@@ -310,7 +325,7 @@ async function crearEventoWeb(req, res) {
       !coordinadorId ||
       asistentesArr.length < 1
     ) {
-      return res.redirect("/eventos");
+        return res.redirect("/eventos");
     }
 
     await eventosService.crear({
@@ -331,6 +346,7 @@ async function crearEventoWeb(req, res) {
     res.status(500).send("Error al crear evento");
   }
 }
+
 
 async function mostrarFormularioEdicion(req, res) {
   try {
@@ -402,13 +418,14 @@ async function guardarEdicionWeb(req, res) {
   try {
     const usuario = res.locals.user;
 
+    // PERMISOS: solo admin o coordinador pueden editar
     if (!["admin", "coordinador"].includes(usuario.rol)) {
       return res
         .status(403)
         .render("error", { mensaje: "No tienes permiso para editar eventos" });
     }
 
-    const {
+    let {
       nombre,
       fecha,
       lugar,
@@ -420,14 +437,28 @@ async function guardarEdicionWeb(req, res) {
       descripcion,
     } = req.body;
 
+    // SI ES COORDINADOR → NO PUEDE CAMBIAR coordinadorId
+    if (usuario.rol === "coordinador") {
+      coordinadorId = usuario._id;
+    }
+
+    // Normalizar asistentes (acepta array o string con comas)
     let asistentesArr = Array.isArray(asistentesIds)
       ? asistentesIds
       : typeof asistentesIds === "string"
       ? asistentesIds.split(",")
       : [];
 
-    asistentesArr = asistentesArr.filter(Boolean);
+    asistentesArr = asistentesArr
+      .map(a => (typeof a === "string" ? a.trim() : a))
+      .filter(Boolean);
 
+    // VALIDACIÓN BÁSICA
+    if (!nombre || !fecha || !clienteId || !coordinadorId) {
+      return res.status(400).render("error", { mensaje: "Faltan datos obligatorios." });
+    }
+
+    // Actualizar evento
     await eventosService.actualizar(req.params.id, {
       nombre,
       fecha,
@@ -436,7 +467,7 @@ async function guardarEdicionWeb(req, res) {
       estado,
       descripcion,
       clienteId,
-      coordinadorId,
+      coordinadorId,        
       asistentesIds: asistentesArr,
     });
 
@@ -446,6 +477,7 @@ async function guardarEdicionWeb(req, res) {
     res.status(500).send("Error al guardar cambios");
   }
 }
+
 
 async function mostrarChatEvento(req, res) {
   try {
