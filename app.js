@@ -40,14 +40,15 @@ app.use(verificarToken);
 // Rutas públicas (sin login)
 // =============================
 app.use("/auth", authRoutes);
-app.use("/chat", chatRoutes);
 
 // =============================
 // Rutas protegidas
 // =============================
 
+// CHAT — requiere login
+app.use("/chat", verificarToken, chatRoutes);
+
 // CLIENTES (rol cliente) — accesible para ADMIN + COORDINADOR
-// Ej: /usuarios/clientes
 app.use(
   "/usuarios",
   verificarToken,
@@ -56,7 +57,6 @@ app.use(
 );
 
 //  ADMINISTRACIÓN DE USUARIOS — SOLO ADMIN
-// Ej: /usuarios/admin , /usuarios/admin/editar/:id
 app.use(
   "/usuarios/admin",
   verificarToken,

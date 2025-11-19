@@ -11,9 +11,9 @@ const router = express.Router();
 router.get("/:eventoId", verificarToken, verChat);
 
 // ==============================
-// API: Obtener historial de mensajes
+// API: Obtener historial de mensajes (PROTEGIDO)
 // ==============================
-router.get("/historial/:eventoId", async (req, res) => {
+router.get("/historial/:eventoId", verificarToken, async (req, res) => {
   try {
     const { eventoId } = req.params;
     const mensajes = await Mensaje.find({ eventoId })
