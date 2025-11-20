@@ -2,6 +2,7 @@ import express from 'express';
 import * as ctrl from '../controllers/eventosController.js';
 import { verificarToken } from "../middlewares/authMiddleware.js";
 import { autorizarRoles, autorizarInvitados, autorizarPresupuesto } from "../middlewares/rolMiddleware.js";
+import Evento from "../models/Evento.js";
 
 const router = express.Router();
 
@@ -132,5 +133,43 @@ router.delete(
 // CHAT
 // -----------------------------------------
 router.get('/chat/:id', verificarToken, ctrl.mostrarChatEvento);
+
+//TESTING
+
+router.post("/:id/presupuesto", verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, monto } = req.body;
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    evento.gastos.push({ descripcion: titulo, monto });
+    await evento.save();
+
+    return res.json(evento);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+router.post("/:id/invitados", verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre } = req.body;
+
+    const evento = await Evento.findById(id);
+    if (!evento) return res.status(404).json({ error: "Evento no encontrado" });
+
+    evento.invitados.push({ nombre });
+    await evento.save();
+
+    return res.json(evento);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 
 export default router;
