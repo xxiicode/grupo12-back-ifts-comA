@@ -89,8 +89,6 @@ block content
 
                         // ==========================================
                         // INVITADOS
-                        // admin / coordinador / asistente asignado → Gestionar invitados
-                        // cliente → Invitados (solo ver)
                         // ==========================================
                         - let puedeInvitados = false;
                         - if (user) {
@@ -112,8 +110,6 @@ block content
 
                         // ==========================================
                         // PRESUPUESTO
-                        // admin/coordinador/asistente → Gestionar
-                        // cliente → Ver Presupuesto
                         // ==========================================
                         - let puedePresupuesto = false;
                         - if (user) {
@@ -160,6 +156,11 @@ block content
 
         else
           .alert.alert-info.mt-3 No hay eventos cargados.
+
+   
+    nav.mt-3
+      ul#paginacion.pagination
+
   // -----------------------------------------
   // SCRIPTS: búsqueda, filtros, orden, paginación
   // -----------------------------------------
@@ -204,7 +205,7 @@ block content
       generarPaginacion();
     }
 
-    const filasPorPagina = 5;
+    const filasPorPagina = 10;
     let paginaActual = 1;
 
     function generarPaginacion() {
