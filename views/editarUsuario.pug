@@ -1,0 +1,45 @@
+extends layout
+
+block content
+  .container.mt-4
+    .card.shadow-lg
+      .card-body
+        h2.text-primary.mb-4 Editar Usuario
+
+        form(action=`/usuarios/admin/editar/${usuario._id}` method="post")
+          .row.g-3
+            .col-md-4
+              label.form-label Usuario
+              input.form-control(type="text" name="username" value=usuario.username)
+
+            .col-md-4
+              label.form-label Nombre completo
+              input.form-control(type="text" name="nombre" value=usuario.nombre)
+
+            .col-md-4
+              label.form-label DNI
+              input.form-control(type="text" name="dni" value=usuario.dni)
+
+            .col-md-4
+              label.form-label Email
+              input.form-control(type="email" name="email" value=usuario.email)
+
+            .col-md-4
+              label.form-label Teléfono
+              input.form-control(type="text" name="telefono" value=usuario.telefono)
+
+            .col-md-4
+              label.form-label Rol
+              select.form-select(name="rol")
+                option(value="admin" selected=usuario.rol==="admin") Administrador
+                option(value="coordinador" selected=usuario.rol==="coordinador") Coordinador
+                option(value="asistente" selected=usuario.rol==="asistente") Asistente
+                option(value="cliente" selected=usuario.rol==="cliente") Cliente
+
+            .col-md-6
+              label.form-label Nueva contraseña
+              input.form-control(type="password" name="password" placeholder="Dejar vacío para mantener")
+
+          .mt-4.d-flex.justify-content-end.gap-2
+            a.btn.btn-outline-secondary(href="/usuarios/admin") Cancelar
+            button.btn.btn-success(type="submit") Guardar cambios

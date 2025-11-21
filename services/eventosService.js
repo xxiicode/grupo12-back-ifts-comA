@@ -1,82 +1,68 @@
 import Evento from "../models/Evento.js";
-import Cliente from "../models/Cliente.js";
 
-// ========== LÓGICA DE NEGOCIO (SERVICES) ==========
+// ======================
+// MÉTODOS CRUD GENERALES
+// ======================
 
-// Obtener todos los eventos
-async function obtenerTodos() {
-  try {
-    return await Evento.find().sort({ fecha: 1 });
-  } catch (error) {
-    throw new Error("Error al obtener eventos: " + error.message);
-  }
+// Obtener todos los eventos (para API) — sin cliente pero con coordinador y asistentes
+export async function obtenerTodos() {
+  return await Evento.find()
+    .populate("coordinadorId", "nombre username email rol")
+    .populate("asistentesIds", "nombre username email rol")
+    .sort({ fecha: 1 })
+    .lean();
 }
 
-// Buscar evento por ID
-async function buscarPorId(id) {
-  try {
-    return await Evento.findById(id);
-  } catch (error) {
-    throw new Error("Error al buscar evento: " + error.message);
-  }
+// Obtener evento por ID (para API)
+export async function buscarPorId(id) {
+  return await Evento.findById(id)
+    .populate("clienteId", "nombre username email telefono dni")
+    .populate("coordinadorId", "nombre username email rol")
+    .populate("asistentesIds", "nombre username email rol")
+    .lean();
 }
 
 // Crear nuevo evento
-async function crear(datosEvento) {
-  try {
-    const nuevoEvento = new Evento(datosEvento);
-    await nuevoEvento.save();
-    return nuevoEvento;
-  } catch (error) {
-    throw new Error("Error al crear evento: " + error.message);
-  }
+export async function crear(data) {
+  const nuevoEvento = new Evento(data);
+  return await nuevoEvento.save();
 }
 
-// Actualizar evento
-async function actualizar(id, datosEvento) {
-  try {
-    const actualizado = await Evento.findByIdAndUpdate(id, datosEvento, { new: true });
-    return actualizado;
-  } catch (error) {
-    throw new Error("Error al actualizar evento: " + error.message);
-  }
+// Actualizar evento existente
+export async function actualizar(id, data) {
+  return await Evento.findByIdAndUpdate(id, data, {
+    new: true
+  })
+    .populate("clienteId", "nombre username email telefono dni")
+    .populate("coordinadorId", "nombre username email rol")
+    .populate("asistentesIds", "nombre username email rol")
+    .lean();
 }
 
 // Eliminar evento
-async function eliminar(id) {
-  try {
-    const eliminado = await Evento.findByIdAndDelete(id);
-    return !!eliminado;
-  } catch (error) {
-    throw new Error("Error al eliminar evento: " + error.message);
-  }
+export async function eliminar(id) {
+  return await Evento.findByIdAndDelete(id);
 }
 
-// Obtener evento con cliente incluido
-async function obtenerConCliente(id) {
-  try {
-    const evento = await Evento.findById(id).populate("clienteId", "nombre email telefono");
-    return evento;
-  } catch (error) {
-    throw new Error("Error al obtener evento con cliente: " + error.message);
-  }
+// ======================================
+// MÉTODOS ESPECÍFICOS PARA VISTAS (PUG)
+// ======================================
+
+// Obtener todos los eventos con datos completos (cliente + coordinador + asistentes)
+export async function obtenerTodosConClientes() {
+  return await Evento.find()
+    .populate("clienteId", "nombre username email telefono dni")
+    .populate("coordinadorId", "nombre username email rol")
+    .populate("asistentesIds", "nombre username email rol")
+    .sort({ fecha: 1 })
+    .lean();
 }
 
-// Obtener todos los eventos con sus clientes
-async function obtenerTodosConClientes() {
-  try {
-    return await Evento.find().populate("clienteId", "nombre email telefono").sort({ fecha: 1 });
-  } catch (error) {
-    throw new Error("Error al obtener eventos con clientes: " + error.message);
-  }
+// Obtener un evento con cliente + relaciones (para chat o editar)
+export async function obtenerConCliente(id) {
+  return await Evento.findById(id)
+    .populate("clienteId", "nombre username email telefono dni")
+    .populate("coordinadorId", "nombre username email rol")
+    .populate("asistentesIds", "nombre username email rol")
+    .lean();
 }
-
-export {
-  obtenerTodos,
-  buscarPorId,
-  crear,
-  actualizar,
-  eliminar,
-  obtenerConCliente,
-  obtenerTodosConClientes
-};

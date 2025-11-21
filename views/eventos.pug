@@ -1,65 +1,252 @@
 extends layout
 
 block content
-  h2 Lista de Eventos
+  .container.mt-4
+    .card.shadow-sm
+      .card-body
+        h2.text-primary.mb-3 Lista de Eventos
 
-  if eventos && eventos.length
-    table
-      thead
-        tr
-          th Nombre
-          th Fecha
-          th Lugar
-          th Presupuesto
-          th Estado
-          th Cliente
-          th Acciones
-      tbody
-        each e in eventos
-          tr
-            td #{e.nombre}
-            td #{e.fechaFormateada}
-            td #{e.lugar}
-            td $#{e.presupuesto}
-            td #{e.estado}
-            td #{e.clienteId ? e.clienteId.nombre : 'Sin asignar'}
-            td
-              a.editar-btn(href=`/eventos/editar/${e.id}`) ✏️
-              button.delete-btn(data-id=e.id data-nombre=e.nombre) 🗑️
-  else
-    p No hay eventos cargados.
+        // ----------------------
+        // FILTROS Y BUSCADOR
+        // ----------------------
+        .row.mb-3
+          .col-md-4
+            input#buscador.form-control(type="text" placeholder="Buscar por nombre, cliente, lugar.")
 
-  h3 Agregar nuevo evento
-  form(action="/eventos" method="post")
-    div
-      input(type="text" name="nombre" placeholder="Nombre" required)
-    div
-      input(type="date" name="fecha" required)
-    div
-      input(type="text" name="lugar" placeholder="Lugar")
-    div
-      input(type="number" name="presupuesto" placeholder="Presupuesto")
-    div
-      select(name="estado")
-        option(value="Planificado") Planificado
-        option(value="En curso") En curso
-        option(value="Finalizado") Finalizado
-    div
-      select(name="clienteId" required)
-        option(value="") Seleccionar cliente
-        each c in clientes
-          option(value=c.id) #{c.nombre}
-    div
-      button(type="submit") Agregar
+          .col-md-4
+            select#filtroEstado.form-select
+              option(value="todos") Filtrar por estado
+              option(value="Planificado") Planificado
+              option(value="En curso") En curso
+              option(value="Finalizado") Finalizado
+              option(value="Cancelado") Cancelado
 
+          // SOLO admin o coordinador pueden ver "Crear evento"
+          if user && (user.rol === "admin" || user.rol === "coordinador")
+            .col-md-4.text-end
+              a.btn.btn-primary(href="/eventos/crear")
+                i.bi.bi-plus-circle-fill.me-1
+                | Crear evento
+
+        if eventos && eventos.length
+          table#tablaEventos.table.table-striped.table-hover.align-middle
+            thead.table-primary
+              tr
+                th(data-sort="fecha" style="cursor:pointer") Fecha ▾
+                th Nombre
+                th Lugar
+                th Presupuesto
+                th Estado
+                th Cliente
+                th Coordinador
+                th.text-center(style="width:110px") Acciones
+            tbody
+              each e in eventos
+                tr(data-fecha=e.fechaISO)
+                  td #{e.fechaFormateada}
+                  td #{e.nombre}
+                  td #{e.lugar}
+                  td $#{e.presupuesto}
+
+                  td
+                    if e.estado === "Cancelado"
+                      span.badge.bg-danger #{e.estado}
+                    else if e.estado === "En curso"
+                      span.badge.bg-warning.text-dark #{e.estado}
+                    else if e.estado === "Finalizado"
+                      span.badge.bg-success #{e.estado}
+                    else
+                      span.badge.bg-secondary #{e.estado}
+
+                  td #{e.cliente ? (e.cliente.nombre || e.cliente.username) : 'Sin asignar'}
+                  td #{e.coordinadorId ? (e.coordinadorId.nombre || e.coordinadorId.username) : '-'}
+
+                  // ======================================
+                  // ACCIONES POR ROL
+                  // ======================================
+                  td.text-center
+                    .btn-group
+                      button.btn.btn-sm.btn-outline-primary.dropdown-toggle(type="button" data-bs-toggle="dropdown")
+                        i.bi.bi-gear-fill
+                        | Acciones
+
+                      ul.dropdown-menu.dropdown-menu-end
+
+                        // ==========================================
+                        // EDITAR → Admin / Coordinador
+                        // DETALLES → Cliente / Asistente
+                        // ==========================================
+                        if user && (user.rol === "admin" || user.rol === "coordinador")
+                          li
+                            a.dropdown-item(href=`/eventos/editar/${e.id}`)
+                              i.bi.bi-pencil-fill.me-2
+                              | Editar
+                        else if user && (user.rol === "cliente" || user.rol === "asistente")
+                          li
+                            a.dropdown-item(href=`/eventos/editar/${e.id}`)
+                              i.bi.bi-eye-fill.me-2
+                              | Detalles
+
+                        // ==========================================
+                        // INVITADOS
+                        // ==========================================
+                        - let puedeInvitados = false;
+                        - if (user) {
+                        -   if (["admin","coordinador"].includes(user.rol)) puedeInvitados = true;
+                        -   if (user.rol === "asistente" && e.asistentesIds.some(a => a._id == user._id)) puedeInvitados = true;
+                        -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeInvitados = true;
+                        - }
+
+                        if puedeInvitados
+                          li
+                            if user.rol === "cliente"
+                              a.dropdown-item(href=`/eventos/${e.id}/invitados`)
+                                i.bi.bi-people-fill.me-2
+                                | Invitados
+                            else
+                              a.dropdown-item(href=`/eventos/${e.id}/invitados`)
+                                i.bi.bi-people-fill.me-2
+                                | Gestionar invitados
+
+                        // ==========================================
+                        // PRESUPUESTO
+                        // ==========================================
+                        - let puedePresupuesto = false;
+                        - if (user) {
+                        -   if (["admin","coordinador","asistente"].includes(user.rol)) puedePresupuesto = true;
+                        -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedePresupuesto = true;
+                        - }
+
+                        if puedePresupuesto
+                          li
+                            if user.rol === "cliente"
+                              a.dropdown-item(href=`/eventos/${e.id}/presupuesto`)
+                                i.bi.bi-receipt.me-2
+                                | Ver presupuesto
+                            else
+                              a.dropdown-item(href=`/eventos/${e.id}/presupuesto`)
+                                i.bi.bi-receipt.me-2
+                                | Gestionar presupuesto
+
+                        // ==========================================
+                        // CHAT (todos los involucrados)
+                        // ==========================================
+                        - let puedeChat = false;
+                        - if (user) {
+                        -   if (["admin","coordinador","asistente"].includes(user.rol)) puedeChat = true;
+                        -   if (user.rol === "cliente" && e.cliente && e.cliente._id == user._id) puedeChat = true;
+                        - }
+
+                        if puedeChat
+                          li
+                            a.dropdown-item(href=`/eventos/chat/${e.id}`)
+                              i.bi.bi-chat-left-text.me-2
+                              | Chat
+
+                        // ==========================================
+                        // ELIMINAR (SOLO ADMIN)
+                        // ==========================================
+                        if user && user.rol === "admin"
+                          li
+                            hr.dropdown-divider
+                          li
+                            a.dropdown-item.text-danger.delete-btn(data-id=e.id data-nombre=e.nombre)
+                              i.bi.bi-trash-fill.me-2
+                              | Eliminar
+
+        else
+          .alert.alert-info.mt-3 No hay eventos cargados.
+
+   
+    nav.mt-3
+      ul#paginacion.pagination
+
+  // -----------------------------------------
+  // SCRIPTS: búsqueda, filtros, orden, paginación
+  // -----------------------------------------
   script.
-    document.addEventListener('click', async (ev) => {
-      if (ev.target.matches('.delete-btn')) {
-        const id = ev.target.dataset.id;
-        const nombre = ev.target.dataset.nombre;
-        if (!confirm('¿Eliminar evento: ' + nombre + '?')) return;
-        const res = await fetch('/eventos/api/' + id, { method: 'DELETE' });
-        if (res.ok) location.reload();
-        else alert('Error al eliminar');
+    const tabla = document.querySelector("#tablaEventos tbody");
+    const filas = Array.from(tabla.querySelectorAll("tr"));
+    let ordenAsc = true;
+
+    // Ordenar por fecha
+    document.querySelector("[data-sort='fecha']").addEventListener("click", () => {
+      ordenAsc = !ordenAsc;
+
+      const ordenadas = [...filas].sort((a, b) => {
+        const fa = new Date(a.dataset.fecha);
+        const fb = new Date(b.dataset.fecha);
+        return ordenAsc ? fa - fb : fb - fa;
+      });
+
+      tabla.innerHTML = "";
+      ordenadas.forEach(f => tabla.appendChild(f));
+      document.querySelector("[data-sort='fecha']").innerHTML =
+        ordenAsc ? "Fecha ▴" : "Fecha ▾";
+
+      aplicarFiltros();
+    });
+
+    document.querySelector("#buscador").addEventListener("input", aplicarFiltros);
+    document.querySelector("#filtroEstado").addEventListener("change", aplicarFiltros);
+
+    function aplicarFiltros() {
+      const texto = document.querySelector("#buscador").value.toLowerCase();
+      const estado = document.querySelector("#filtroEstado").value;
+
+      filas.forEach(fila => {
+        const contenido = fila.innerText.toLowerCase();
+        const estadoFila = fila.children[4].innerText.trim();
+        const coincideTexto = contenido.includes(texto);
+        const coincideEstado = estado === "todos" || estadoFila === estado;
+        fila.style.display = (coincideTexto && coincideEstado) ? "" : "none";
+      });
+
+      generarPaginacion();
+    }
+
+    const filasPorPagina = 10;
+    let paginaActual = 1;
+
+    function generarPaginacion() {
+      const visibles = filas.filter(f => f.style.display !== "none");
+      const totalPaginas = Math.ceil(visibles.length / filasPorPagina);
+
+      visibles.forEach(f => f.style.display = "none");
+
+      const inicio = (paginaActual - 1) * filasPorPagina;
+      const fin = inicio + filasPorPagina;
+      visibles.slice(inicio, fin).forEach(f => f.style.display = "");
+
+      const pag = document.querySelector("#paginacion");
+      pag.innerHTML = "";
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        const li = document.createElement("li");
+        li.className = "page-item " + (i === paginaActual ? "active" : "");
+        li.innerHTML = `<a class='page-link' href='#'>${i}</a>`;
+        li.addEventListener("click", () => {
+          paginaActual = i;
+          generarPaginacion();
+        });
+        pag.appendChild(li);
       }
+    }
+
+    aplicarFiltros();
+
+    // Eliminar evento (solo admin)
+    document.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest(".delete-btn");
+      if (!btn) return;
+
+      const nombre = btn.dataset.nombre;
+      const id = btn.dataset.id;
+
+      if (!confirm("¿Eliminar evento: " + nombre + "?")) return;
+
+      const res = await fetch("/eventos/api/" + id, { method: "DELETE" });
+
+      if (res.ok) location.reload();
+      else alert("Error al eliminar el evento.");
     });

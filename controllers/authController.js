@@ -1,0 +1,121 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import Usuario from "../models/Usuario.js";
+
+const SECRET = process.env.JWT_SECRET || "claveSuperSecreta123";
+
+// LOGIN
+export async function login(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    const usuario = await Usuario.findOne({ username });
+    if (!usuario) {
+      return res.status(401).render("login", { error: "Usuario no encontrado" });
+    }
+
+    const valido = await bcrypt.compare(password, usuario.passwordHash);
+    if (!valido) {
+      return res.status(401).render("login", { error: "Credenciales inválidas" });
+    }
+
+    const token = jwt.sign(
+      { id: usuario._id, username: usuario.username, rol: usuario.rol },
+      SECRET,
+      { expiresIn: "2h" }
+    );
+
+    res.cookie("token", token, { httpOnly: true, maxAge: 2 * 60 * 60 * 1000 });
+    res.redirect("/");
+  } catch (error) {
+    console.error("Error en login:", error);
+    res.status(500).render("login", { error: "Error interno del servidor" });
+  }
+}
+
+// ==========================================
+// LOGIN PARA API (Thunder Client)
+// ==========================================
+export async function loginAPI(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    const usuario = await Usuario.findOne({ username });
+    if (!usuario) {
+      return res.status(401).json({ error: "Usuario no encontrado" });
+    }
+
+    const valido = await bcrypt.compare(password, usuario.passwordHash);
+    if (!valido) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+
+    const token = jwt.sign(
+      { id: usuario._id, username: usuario.username, rol: usuario.rol },
+      SECRET,
+      { expiresIn: "2h" }
+    );
+
+    //  DEVOLVER TOKEN EN JSON 
+    return res.json({
+      ok: true,
+      token,
+      usuario: {
+        id: usuario._id,
+        username: usuario.username,
+        rol: usuario.rol
+      }
+    });
+  } catch (error) {
+    console.error("Error en login API:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+
+// LOGOUT
+export async function logout(req, res) {
+  try {
+    res.clearCookie("token");
+    res.render("login", { success: "Sesión cerrada correctamente." });
+  } catch (error) {
+    console.error("Error en logout:", error);
+    res.status(500).render("login", { error: "Error al cerrar sesión" });
+  }
+}
+
+// REGISTRAR NUEVO USUARIO (usado por /auth/register, con permisos ya verificados en la ruta)
+export async function registrar(req, res) {
+  try {
+    const { username, password, nombre, rol, dni, email, telefono } = req.body;
+
+    if (!username || !password || !rol) {
+      return res.status(400).render("register", { error: "Faltan datos obligatorios." });
+    }
+
+    const existente = await Usuario.findOne({ username });
+    if (existente) {
+      return res.status(400).render("register", { error: "El nombre de usuario ya está registrado." });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const nuevoUsuario = new Usuario({
+      username,
+      passwordHash,
+      nombre,
+      rol,
+      dni,
+      email,
+      telefono
+    });
+
+    await nuevoUsuario.save();
+
+    // Mostrar success en la misma vista register.pug
+    res.render("register", { success: `Usuario "${username}" registrado correctamente.` });
+  } catch (error) {
+    console.error("Error en registrar:", error);
+    res.status(500).render("register", { error: "Error interno del servidor." });
+  }
+}

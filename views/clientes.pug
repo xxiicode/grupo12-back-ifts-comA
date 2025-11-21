@@ -1,51 +1,94 @@
 extends layout
 
 block content
-  h2 Lista de Clientes
+  .container.mt-4
 
-  if clientes && clientes.length
-    table
-      thead
-        tr
-          th Nombre
-          th Email
-          th Teléfono
-          th Acciones
-      tbody
-        each c in clientes
-          tr
-            td #{c.nombre}
-            td #{c.email}
-            td #{c.telefono || 'N/A'}
-            td
-              a.editar-btn(href=`/clientes/editar/${c._id}`) ✏️
-              button.delete-btn(data-id=c._id data-nombre=c.nombre) 🗑️
-  else
-    p No hay clientes cargados.
+    if error
+      .alert.alert-danger(role="alert") #{error}
 
-  h3 Agregar nuevo cliente
-  form(action="/clientes" method="post")
-    div
-      input(type="text" name="nombre" placeholder="Nombre completo" required)
-    div
-      input(type="email" name="email" placeholder="Email" required)
-    div
-      input(type="tel" name="telefono" placeholder="Teléfono")
-    div
-      button(type="submit") Agregar Cliente
+    if success
+      .alert.alert-success(role="alert") #{success}
+
+    .card.shadow-sm
+      .card-body
+        h2.mb-3.text-primary
+          i.bi.bi-people-fill.me-2
+          | Lista de Clientes
+
+        if clientes && clientes.length
+          table.table.table-striped.table-hover.align-middle
+            thead.table-primary
+              tr
+                th Usuario
+                th Nombre completo
+                th DNI
+                th Email
+                th Teléfono
+                th.text-center Acciones
+            tbody
+              each c in clientes
+                tr
+                  td #{c.username}
+                  td #{c.nombre || '-'}
+                  td #{c.dni || '-'}
+                  td #{c.email || '-'}
+                  td #{c.telefono || '-'}
+                  td.text-center
+                    if user && ["admin","coordinador"].includes(user.rol)
+                      a.btn.btn-sm.btn-outline-secondary.me-2(href=`/usuarios/editar/${c._id}`)
+                        i.bi.bi-pencil-fill
+                        |  Editar
+                      button.btn.btn-sm.btn-outline-danger.delete-btn(data-id=c._id data-nombre=c.username)
+                        i.bi.bi-trash-fill
+                        |  Eliminar
+        else
+          .alert.alert-info.mt-3 No hay clientes registrados.
+
+    // ===== FORMULARIO NUEVO CLIENTE (solo si admin o coordinador) =====
+    if user && ["admin","coordinador"].includes(user.rol)
+      .card.mt-4.shadow-sm
+        .card-body
+          h3.text-primary.mb-3
+            i.bi.bi-person-plus-fill.me-2
+            | Registrar nuevo cliente
+
+          form(action="/usuarios/clientes/crear" method="post")
+            input(type="hidden" name="rol" value="cliente")
+            .row.g-3
+              .col-md-4
+                label.form-label(for="username") Usuario
+                input.form-control(type="text" name="username" required placeholder="ej: cliente123")
+              .col-md-4
+                label.form-label(for="password") Contraseña
+                input.form-control(type="password" name="password" required placeholder="********")
+              .col-md-4
+                label.form-label(for="nombre") Nombre completo
+                input.form-control(type="text" name="nombre" placeholder="Juan García")
+              .col-md-4
+                label.form-label(for="dni") DNI
+                input.form-control(type="number" name="dni" placeholder="12345678")
+              .col-md-4
+                label.form-label(for="email") Email
+                input.form-control(type="email" name="email" placeholder="cliente@correo.com")
+              .col-md-4
+                label.form-label(for="telefono") Teléfono
+                input.form-control(type="text" name="telefono" placeholder="11 7033 4450")
+            .mt-3
+              button.btn.btn-primary(type="submit")
+                i.bi.bi-person-check-fill.me-1
+                | Crear Cliente
 
   script.
     document.addEventListener('click', async (ev) => {
-      if (ev.target.matches('.delete-btn')) {
-        const id = ev.target.dataset.id;
-        const nombre = ev.target.dataset.nombre;
-        if (!confirm('¿Eliminar cliente: ' + nombre + '?')) return;
-        const res = await fetch('/clientes/api/' + id, { method: 'DELETE' });
-        if (res.ok) {
-          location.reload();
-        } else {
-          const error = await res.json();
-          alert(error.error || 'Error al eliminar');
-        }
+      const btn = ev.target.closest('.delete-btn');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const nombre = btn.dataset.nombre;
+      if (!confirm('¿Eliminar cliente "' + nombre + '"?')) return;
+      const res = await fetch('/usuarios/api/' + id, { method: 'DELETE' });
+      if (res.ok) location.reload();
+      else {
+        const error = await res.json();
+        alert(error.error || 'Error al eliminar cliente');
       }
     });

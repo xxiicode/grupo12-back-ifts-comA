@@ -1,0 +1,8 @@
+extends layout
+
+block content
+  .container.mt-5
+    .alert.alert-danger
+      h3 Error
+      p #{mensaje || "Ha ocurrido un error inesperado."}
+    a.btn.btn-primary(href="/") Volver al inicio

@@ -1,0 +1,72 @@
+extends layout
+
+block content
+  .container.mt-4
+    .card.shadow-lg
+      .card-body
+        h2.text-primary.mb-4 Crear nuevo evento
+
+        form(action="/eventos/crear" method="post")
+          .row.g-3
+
+            .col-md-6
+              label.form-label(for="nombre") Nombre
+              input.form-control#nombre(type="text" name="nombre" required)
+
+            .col-md-6
+              label.form-label(for="fecha") Fecha
+              input.form-control#fecha(type="date" name="fecha" required)
+
+            .col-md-6
+              label.form-label(for="lugar") Lugar
+              input.form-control#lugar(type="text" name="lugar")
+
+            .col-md-6
+              label.form-label(for="presupuesto") Presupuesto estimado
+              input.form-control#presupuesto(type="number" name="presupuesto")
+
+            .col-md-12
+              label.form-label(for="descripcion") Descripción
+              textarea.form-control#descripcion(name="descripcion" rows="3")
+
+            .col-md-6
+              label.form-label(for="estado") Estado
+              select.form-select(name="estado")
+                option(value="Planificado") Planificado
+                option(value="En curso") En curso
+                option(value="Finalizado") Finalizado
+                option(value="Cancelado") Cancelado
+
+            .col-md-6
+              label.form-label(for="clienteId") Cliente
+              select.form-select(name="clienteId" required)
+                option(value="") Seleccionar cliente
+                each c in clientes
+                  option(value=c._id) #{c.nombre || c.username} (#{c.username})
+
+            // ===============================
+            // COORDINADOR
+            // ===============================
+            if user.rol === "admin"
+              .col-md-6
+                label.form-label(for="coordinadorId") Coordinador
+                select.form-select(name="coordinadorId" required)
+                  option(value="") Seleccionar coordinador
+                  each coord in coordinadores
+                    option(value=coord._id)= `${coord.nombre || coord.username} (${coord.username})`
+            else if user.rol === "coordinador"
+              // Campo oculto + texto visible
+              input(type="hidden" name="coordinadorId" value=user._id)
+              .col-md-6
+                label.form-label Coordinador
+                input.form-control(type="text" disabled value=`${user.nombre || user.username}`)
+
+            .col-md-12
+              label.form-label(for="asistentesIds") Asistentes (Ctrl/Cmd + click para seleccionar varios, max 10)
+              select.form-select(name="asistentesIds" multiple required size=8)
+                each a in asistentes
+                  option(value=a._id) #{a.nombre || a.username} (#{a.username})
+
+          .mt-3.d-flex.justify-content-end.gap-2
+            a.btn.btn-outline-secondary(href="/eventos") Cancelar
+            button.btn.btn-success(type="submit") Crear evento

@@ -1,5 +1,12 @@
 extends layout
 
 block content
-  h2 Bienvenido a Eventify Manager
-  p Usa el menú de arriba para ir a la lista de eventos.
+  .container.mt-5
+    .text-center
+      h1.mb-4 Bienvenido al Administrador de eventos Axora.
+      p.lead Usa el menú superior para gestionar eventos y clientes.
+
+      img(src="/axora.png" alt="Logo Axora" class="img-fluid my-4 d-block mx-auto" style="max-width:300px")
+
+      if !user
+        a.btn.btn-primary.mt-3(href="/auth/login") Iniciar sesión

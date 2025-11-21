@@ -1,0 +1,73 @@
+extends layout
+
+block content
+  .container.mt-4
+    h2.text-primary.mb-4
+      i.bi.bi-people.me-2
+      | Gestión de Usuarios (Administrador)
+
+    // ===== Función para renderizar cada sección =====
+    mixin tablaUsuarios(titulo, usuarios)
+      if usuarios.length
+        h4.mt-4.mb-2.text-secondary #{titulo}
+        table.table.table-striped.table-hover.align-middle.mb-4
+          thead.table-primary
+            tr
+              th Usuario
+              th Nombre
+              th DNI
+              th Email
+              th Teléfono
+              th.text-center Acciones
+          tbody
+            each u in usuarios
+              tr
+                td #{u.username}
+                td #{u.nombre || "-"}
+                td #{u.dni || "-"}
+                td #{u.email || "-"}
+                td #{u.telefono || "-"}
+                td.text-center
+                  // 👉 EDITAR (ruta correcta del módulo admin)
+                  a.btn.btn-sm.btn-outline-secondary.me-2(
+                    href=`/usuarios/admin/editar/${u._id}`
+                  )
+                    i.bi.bi-pencil-fill
+
+                  // 👉 ELIMINAR (ruta correcta del módulo admin)
+                  button.btn.btn-sm.btn-outline-danger.delete-btn(
+                    data-url=`/usuarios/admin/api/${u._id}`
+                    data-username=u.username
+                  )
+                    i.bi.bi-trash-fill
+
+    // ===== Dividir usuarios por rol =====
+    - const admins = usuarios.filter(u => u.rol === "admin");
+    - const coordinadores = usuarios.filter(u => u.rol === "coordinador");
+    - const asistentes = usuarios.filter(u => u.rol === "asistente");
+    - const clientes = usuarios.filter(u => u.rol === "cliente");
+
+    // ===== Mostrar las listas separadas =====
+    +tablaUsuarios("Administradores", admins)
+    +tablaUsuarios("Coordinadores", coordinadores)
+    +tablaUsuarios("Asistentes", asistentes)
+    +tablaUsuarios("Clientes", clientes)
+
+    script.
+      document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".delete-btn");
+        if (!btn) return;
+
+        const url = btn.dataset.url;
+        const username = btn.dataset.username;
+
+        if (!confirm(`¿Eliminar al usuario "${username}"?`)) return;
+
+        const res = await fetch(url, { method: "DELETE" });
+
+        if (res.ok) {
+          location.reload();
+        } else {
+          alert("No se pudo eliminar el usuario");
+        }
+      });
